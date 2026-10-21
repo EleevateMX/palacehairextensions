@@ -2,13 +2,14 @@ import { readFileSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
 
 // Variables del stack local (scripts/local-stack/start.sh). Nunca apuntar a un proyecto real.
-const RUN = process.env.PALACE_RUN_DIR ?? "/tmp/palace-local-run";
+const OFF = Number(process.env.STACK_OFFSET ?? 0);
+const RUN = process.env.PALACE_RUN_DIR ?? `/tmp/palace-local-run${OFF ? `-${OFF}` : ""}`;
 const env = Object.fromEntries(
   readFileSync(`${RUN}/env`, "utf8").trim().split("\n").map((l) => l.split(/=(.*)/s).slice(0, 2) as [string, string]),
 );
 if (!env.NEXT_PUBLIC_SUPABASE_URL?.startsWith("http://127.0.0.1")) throw new Error("E2E solo contra el stack local");
 
-const PORT = 3100;
+const PORT = 3100 + OFF;
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: false,

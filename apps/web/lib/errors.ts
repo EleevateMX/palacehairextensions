@@ -1,17 +1,70 @@
 /** Traduce los códigos de error de negocio de la base de datos a mensajes para el personal. */
-const MESSAGES: Record<string, string> = {
+export const MESSAGES: Record<string, string> = {
   SLOT_TAKEN: "Ese horario acaba de ocuparse. Elige otro.",
   OUTSIDE_BUSINESS_HOURS: "El horario está fuera del horario del salón.",
   STAFF_NOT_WORKING: "La especialista no tiene turno en ese horario.",
   STAFF_NOT_QUALIFIED: "La especialista no está autorizada para este servicio.",
+  STAFF_REQUIRED: "Este servicio requiere asignar una especialista.",
   RESOURCE_REQUIRED: "No hay estación o recurso disponible para el servicio.",
+  SERVICE_NOT_FOUND: "El servicio no existe o está inactivo.",
+  NO_SERVICES: "Agrega al menos un servicio.",
   INSUFFICIENT_STOCK: "No hay existencias suficientes disponibles.",
+  INVALID_QUANTITY: "Cantidad inválida.",
+  INVALID_MOVEMENT_TYPE: "Tipo de movimiento no permitido aquí.",
+  NOTE_REQUIRED: "Escribe el motivo.",
+  REASON_REQUIRED: "Escribe el motivo.",
+  INVALID_TRANSFER: "Transferencia inválida.",
+  COUNT_NOT_OPEN: "El conteo ya no está abierto.",
+  COUNT_BELOW_RESERVED: "Lo contado es menor que lo reservado para citas o clientas.",
+  PO_CLOSED: "La orden de compra ya está cerrada.",
   FORBIDDEN: "Tu rol no tiene permiso para esta operación.",
-  DISCOUNT_NOT_AUTHORIZED: "El descuento requiere autorización.",
+  APPOINTMENT_NOT_FOUND: "La cita no existe.",
+  APPOINTMENT_IN_PROGRESS: "La cita ya está en servicio o terminada.",
+  APPOINTMENT_NOT_EDITABLE: "La cita ya no se puede modificar.",
+  APPOINTMENT_NOT_CONFIRMED: "La cita no está confirmada.",
+  APPOINTMENT_NOT_COMPLETABLE: "La cita no se puede completar.",
+  USE_COMPLETE_APPOINTMENT: "Usa «Completar» para terminar la cita.",
+  NO_STAFF_ALLOCATION: "La cita no tiene especialista asignada.",
+  TIME_OFF_NOT_PENDING: "La solicitud ya fue resuelta.",
+  NOT_FOUND: "No se encontró el registro.",
+  CASH_SESSION_ALREADY_OPEN: "Ya hay una caja abierta en esta sucursal.",
+  CASH_SESSION_NOT_OPEN: "La caja no está abierta.",
+  BREAKDOWN_MISMATCH: "El desglose de billetes y monedas no suma lo contado.",
+  EMPTY_CART: "El carrito está vacío.",
+  PRODUCT_NOT_FOUND: "Producto no encontrado o inactivo.",
+  INVALID_LINE_KIND: "Línea inválida.",
+  INVALID_AMOUNT: "Importe inválido.",
+  DISCOUNT_NOT_AUTHORIZED: "El descuento requiere autorización de administración.",
+  PRICE_OVERRIDE_NOT_AUTHORIZED: "Cambiar el precio requiere autorización de administración.",
+  DISCOUNT_EXCEEDS_LINE: "El descuento es mayor que el importe.",
+  RESERVATION_INVALID: "La reserva de inventario no es válida.",
+  COUPON_INVALID: "Cupón inválido o vencido.",
+  GIFT_CARD_INVALID: "Tarjeta de regalo inválida o vencida.",
+  GIFT_CARD_INSUFFICIENT: "Saldo insuficiente en la tarjeta de regalo.",
+  GIFT_CARD_ALREADY_USED: "La tarjeta de regalo ya se usó; no se puede cancelar la venta.",
+  DEPOSIT_NOT_AVAILABLE: "El anticipo no está disponible (ya aplicado o reembolsado).",
+  DEPOSIT_AMOUNT_MISMATCH: "El anticipo se aplica por su importe completo.",
+  DUPLICATE_PAYMENT: "Esa referencia de pago ya fue registrada.",
+  OVERPAYMENT: "Los pagos superan el total.",
   PAYMENT_INCOMPLETE: "El pago no cubre el total.",
+  CLIENT_REQUIRED_FOR_BALANCE: "Para dejar saldo pendiente selecciona a la clienta.",
+  UNSUPPORTED_METHOD: "Método de pago no permitido para abonos.",
+  SALE_VOIDED: "La venta está cancelada.",
+  SALE_NOT_VOIDABLE: "La venta no se puede cancelar.",
+  SALE_HAS_REFUNDS: "La venta tiene devoluciones; no se puede cancelar completa.",
+  NOTHING_TO_REFUND: "No hay importe por devolver.",
+  CONSENT_REQUIRED: "La clienta no ha autorizado fotografías.",
+  PRIVACY_REQUIRED: "Debes aceptar el aviso de privacidad.",
+  INVALID_PHONE: "Teléfono inválido. Usa formato internacional, p. ej. +52 999 123 4567.",
+  SERVICE_NOT_BOOKABLE_ONLINE: "Este servicio no se reserva en línea; agenda una valoración.",
+  RESOLVE_FIRST: "Resuelve la conversación antes de reactivar el bot.",
+  IMMUTABLE_LEDGER: "Este registro no se puede modificar.",
 };
 
-export function businessMessage(error: { message?: string } | null | undefined): string {
+export function businessMessage(error: { message?: string; code?: string } | null | undefined, fallback?: string): string {
   const code = error?.message ?? "";
-  return MESSAGES[code] ?? "No se pudo completar la operación. Intenta de nuevo.";
+  if (MESSAGES[code]) return MESSAGES[code]!;
+  if (error?.code === "23505") return "Ya existe un registro con esos datos (duplicado).";
+  if (error?.code === "42501" || /row-level security/i.test(code)) return MESSAGES.FORBIDDEN!;
+  return fallback ?? "No se pudo completar la operación. Intenta de nuevo.";
 }

@@ -6,8 +6,12 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 HERE="$ROOT/scripts/local-stack"
 BIN="${PALACE_BIN:-/opt/palace-local}"
 export PGHOST="${PGHOST:-/tmp}" PGPORT="${PGPORT:-54329}" PGUSER="${PGUSER:-postgres}"
-DB="${PALACE_LOCAL_DB:-palace_local}"
-RUN="${PALACE_RUN_DIR:-/tmp/palace-local-run}"
+# STACK_OFFSET permite varias copias en paralelo (0 = puertos por omisión).
+OFF="${STACK_OFFSET:-0}"
+DB="${PALACE_LOCAL_DB:-palace_local$([ "$OFF" = 0 ] || echo "_$OFF")}"
+RUN="${PALACE_RUN_DIR:-/tmp/palace-local-run$([ "$OFF" = 0 ] || echo "-$OFF")}"
+AUTH_PORT=$((9999 + OFF*10)); PGRST_PORT=$((3001 + OFF*10)); GATEWAY_PORT=$((54321 + OFF*10))
+export AUTH_PORT PGRST_PORT GATEWAY_PORT PALACE_RUN_DIR="$RUN"
 JWT_SECRET="super-secret-jwt-token-with-at-least-32-characters-long"   # solo local
 PGTCP="postgres://%s@127.0.0.1:$PGPORT/$DB"
 
@@ -34,11 +38,11 @@ SQL
 export GOTRUE_DB_DRIVER=postgres
 export DATABASE_URL="$(printf "$PGTCP" supabase_auth_admin)?search_path=auth"
 export GOTRUE_DB_MIGRATIONS_PATH="$BIN/migrations"
-export GOTRUE_SITE_URL="${SITE_URL:-http://127.0.0.1:3000}" API_EXTERNAL_URL="http://127.0.0.1:54321/auth/v1"
+export GOTRUE_SITE_URL="${SITE_URL:-http://127.0.0.1:3000}" API_EXTERNAL_URL="http://127.0.0.1:$GATEWAY_PORT/auth/v1"
 export GOTRUE_JWT_SECRET="$JWT_SECRET" GOTRUE_JWT_EXP=3600 GOTRUE_JWT_AUD=authenticated
 export GOTRUE_JWT_DEFAULT_GROUP_NAME=authenticated GOTRUE_JWT_ADMIN_ROLES=service_role
 export GOTRUE_DISABLE_SIGNUP=true GOTRUE_MAILER_AUTOCONFIRM=true GOTRUE_EXTERNAL_EMAIL_ENABLED=true
-export GOTRUE_API_HOST=127.0.0.1 PORT=9999 GOTRUE_LOG_LEVEL=warn
+export GOTRUE_API_HOST=127.0.0.1 PORT=$AUTH_PORT GOTRUE_LOG_LEVEL=warn
 "$BIN/auth" migrate >"$RUN/auth-migrate.log" 2>&1 || { cat "$RUN/auth-migrate.log"; exit 1; }
 
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$ROOT/supabase/tests/shim/supabase_shim.sql" >/dev/null
@@ -54,19 +58,20 @@ db-schemas = "public"
 db-anon-role = "anon"
 jwt-secret = "$JWT_SECRET"
 server-host = "127.0.0.1"
-server-port = 3001
+server-port = $PGRST_PORT
 CONF
 nohup "$BIN/postgrest" "$RUN/postgrest.conf" >"$RUN/postgrest.log" 2>&1 & echo $! >"$RUN/postgrest.pid"
 nohup node "$HERE/gateway.mjs" >"$RUN/gateway.log" 2>&1 & echo $! >"$RUN/gateway.pid"
 
 ANON=$(node "$HERE/jwt.mjs" anon "$JWT_SECRET")
 SERVICE=$(node "$HERE/jwt.mjs" service_role "$JWT_SECRET")
-for i in $(seq 1 40); do curl -sf http://127.0.0.1:54321/auth/v1/health >/dev/null && curl -sf -H "apikey: $ANON" http://127.0.0.1:54321/rest/v1/ >/dev/null && break; sleep 0.5; done
+for i in $(seq 1 40); do curl -sf http://127.0.0.1:$GATEWAY_PORT/auth/v1/health >/dev/null && curl -sf -H "apikey: $ANON" http://127.0.0.1:$GATEWAY_PORT/rest/v1/ >/dev/null && break; sleep 0.5; done
 
 cat >"$RUN/env" <<ENV
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:$GATEWAY_PORT
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$ANON
 SUPABASE_SECRET_KEY=$SERVICE
 ENV
 node "$HERE/create-users.mjs" "$RUN/env"
-echo "Stack local listo. Variables en $RUN/env"
+echo "PALACE_LOCAL_DB=$DB" >>"$RUN/env"
+echo "Stack local listo (BD $DB, puerta $GATEWAY_PORT). Variables en $RUN/env"

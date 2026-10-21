@@ -62,3 +62,52 @@ export const buttonClass =
   "inline-flex min-h-11 items-center justify-center rounded-brand bg-accent px-4 text-sm font-medium text-accent-fg hover:opacity-90 disabled:opacity-50";
 export const inputClass =
   "min-h-11 w-full rounded-brand border border-line bg-surface px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40";
+
+export function Field({ label, children, hint, className = "" }: { label: string; children: ReactNode; hint?: string; className?: string }) {
+  return (
+    <label className={`block space-y-1 ${className}`}>
+      <span className="text-sm font-medium">{label}</span>
+      {children}
+      {hint ? <span className="block text-xs text-muted">{hint}</span> : null}
+    </label>
+  );
+}
+
+export function Tabs({ items, current }: { items: { href: string; label: string }[]; current: string }) {
+  return (
+    <nav className="mb-4 flex gap-1 overflow-x-auto border-b border-line">
+      {items.map((t) => (
+        <a
+          key={t.href}
+          href={t.href}
+          aria-current={t.href === current ? "page" : undefined}
+          className={`whitespace-nowrap border-b-2 px-3 py-2 text-sm ${t.href === current ? "border-accent font-medium" : "border-transparent text-muted"}`}
+        >
+          {t.label}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+export function DataTable({ head, children }: { head: string[]; children: ReactNode }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead className="text-left text-xs text-muted">
+          <tr>
+            {head.map((h) => (
+              <th key={h} className="py-2 pr-3 font-medium">
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-line">{children}</tbody>
+      </table>
+    </div>
+  );
+}
+
+export const secondaryButtonClass =
+  "inline-flex min-h-11 items-center justify-center rounded-brand border border-line bg-surface px-4 text-sm font-medium hover:bg-surface-muted";

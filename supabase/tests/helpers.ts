@@ -40,7 +40,7 @@ export async function resetFixtures() {
         public.refunds, public.sale_payments, public.sale_lines, public.sales, public.cash_sessions, public.gift_cards, public.coupons,
         public.maintenance_reminders, public.appointment_deposits, public.appointment_allocations, public.appointment_services,
         public.appointments, public.stock_reservations, public.stock_levels, public.client_notes, public.client_photos,
-        public.clients, public.service_materials, public.service_resource_requirements, public.staff_services, public.services,
+        public.clients, public.service_materials, public.service_resource_requirements, public.service_cost_items, public.commission_rules, public.expenses, public.staff_services, public.services,
         public.resources, public.resource_types, public.product_variants, public.products, public.staff_time_off,
         public.staff_schedules, public.staff_members, public.business_hours, public.special_days, public.locations,
         public.stock_movements, public.client_consents, auth.users cascade;

@@ -22,7 +22,7 @@ export const db = new pg.Pool({
   host: process.env.PGHOST ?? "/tmp",
   port: Number(process.env.PGPORT ?? 54329),
   user: "postgres",
-  database: process.env.PALACE_LOCAL_DB ?? "palace_local",
+  database: process.env.PALACE_LOCAL_DB ?? `palace_local${Number(process.env.STACK_OFFSET ?? 0) ? `_${process.env.STACK_OFFSET}` : ""}`,
 });
 
 /** Próximo día hábil (lun–sáb) a 7+ días, en formato YYYY-MM-DD. */
