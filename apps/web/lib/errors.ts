@@ -68,6 +68,7 @@ export const MESSAGES: Record<string, string> = {
   INVALID_RANGE: "Rango inválido: el fin debe ser posterior al inicio y los periodos de reporte son de máximo un año.",
   INVALID_WEEKDAY: "Día de la semana inválido.",
   OVERLAPPING_RANGES: "Hay rangos de horario que se traslapan el mismo día.",
+  BREAKDOWN_INVALID: "El desglose de billetes y monedas no es válido.",
 };
 
 export function businessMessage(error: { message?: string; code?: string } | null | undefined, fallback?: string): string {
