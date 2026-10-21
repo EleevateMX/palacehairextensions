@@ -64,7 +64,10 @@ export const MESSAGES: Record<string, string> = {
   SUPPLIER_NOT_FOUND: "El proveedor no existe o está inactivo.",
   LOCATION_NOT_FOUND: "La sucursal no existe o está inactiva.",
   PO_EMPTY: "La orden de compra necesita al menos una partida.",
-  INVALID_RANGE: "El periodo debe ser válido y de máximo un año.",
+  // Usado por horarios (fin antes que inicio) y por reportes (periodo inválido o mayor a un año).
+  INVALID_RANGE: "Rango inválido: el fin debe ser posterior al inicio y los periodos de reporte son de máximo un año.",
+  INVALID_WEEKDAY: "Día de la semana inválido.",
+  OVERLAPPING_RANGES: "Hay rangos de horario que se traslapan el mismo día.",
 };
 
 export function businessMessage(error: { message?: string; code?: string } | null | undefined, fallback?: string): string {
