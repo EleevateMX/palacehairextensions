@@ -61,6 +61,9 @@ export const MESSAGES: Record<string, string> = {
   IMMUTABLE_LEDGER: "Este registro no se puede modificar.",
   NAME_REQUIRED: "Escribe el nombre de la clienta.",
   PHONE_TAKEN: "Ya existe una clienta con ese teléfono. Búscala en la lista de clientas.",
+  SUPPLIER_NOT_FOUND: "El proveedor no existe o está inactivo.",
+  LOCATION_NOT_FOUND: "La sucursal no existe o está inactiva.",
+  PO_EMPTY: "La orden de compra necesita al menos una partida.",
 };
 
 export function businessMessage(error: { message?: string; code?: string } | null | undefined, fallback?: string): string {
