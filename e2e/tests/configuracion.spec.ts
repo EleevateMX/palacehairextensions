@@ -43,7 +43,7 @@ test("recepción no puede abrir Configuración", async ({ page }) => {
 });
 
 test("la propietaria crea y edita un servicio y su personal capacitado", async ({ page }) => {
-  const name = `Servicio E2E ${stamp()}`;
+  const name = `Prueba E2E ${stamp()}`;
   await login(page, USERS.owner);
   await page.goto("/configuracion/servicios");
   await page.getByLabel("Nombre del servicio").fill(name);
@@ -214,5 +214,8 @@ test("cotizador: muestra el aviso de ejemplo y guarda la variación del rango", 
   expect(Object.keys(rows[0].quote_config.techniques)).toContain("keratina");
   await page.getByLabel("Variación ± (%)").fill("15");
   await page.getByRole("button", { name: "Guardar cotizador" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Configuración del cotizador guardada." })).toBeVisible();
+  // Restaura el valor original y espera a que quede en la BD (otras pruebas dependen de él).
+  await expect
+    .poll(async () => (await db.query(`select quote_config from business_settings where id = 1`)).rows[0].quote_config.rangeBps)
+    .toBe(1500);
 });

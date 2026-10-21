@@ -84,6 +84,14 @@ test("la propietaria da de alta a una persona que después puede entrar", async 
 test("la estilista solicita vacaciones y la propietaria las aprueba", async ({ page }) => {
   const day = farWorkday();
   const reason = `Vacaciones E2E ${stamp()}`;
+  // Repetible: el día elegido no debe tener ocupaciones previas de Ana (de otras corridas).
+  await db.query(
+    `update appointment_allocations set active = false
+      where staff_id = (select id from staff_members where display_name = 'Ana (DEV)')
+        and occupied && tstzrange(($1::date)::timestamp at time zone 'America/Mexico_City',
+                                  ($1::date + 1)::timestamp at time zone 'America/Mexico_City')`,
+    [day],
+  );
   await login(page, USERS.ana);
   await page.goto("/personal/ausencias");
   await page.getByLabel("Tipo").selectOption("vacation");
