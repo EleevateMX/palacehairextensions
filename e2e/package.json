@@ -1,0 +1,15 @@
+{
+  "name": "@palace/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@types/node": "^22.0.0",
+    "pg": "^8.13.0",
+    "@types/pg": "^8.11.0"
+  }
+}
