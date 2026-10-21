@@ -59,6 +59,8 @@ export const MESSAGES: Record<string, string> = {
   SERVICE_NOT_BOOKABLE_ONLINE: "Este servicio no se reserva en línea; agenda una valoración.",
   RESOLVE_FIRST: "Resuelve la conversación antes de reactivar el bot.",
   IMMUTABLE_LEDGER: "Este registro no se puede modificar.",
+  NAME_REQUIRED: "Escribe el nombre de la clienta.",
+  PHONE_TAKEN: "Ya existe una clienta con ese teléfono. Búscala en la lista de clientas.",
 };
 
 export function businessMessage(error: { message?: string; code?: string } | null | undefined, fallback?: string): string {
