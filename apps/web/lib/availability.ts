@@ -16,37 +16,56 @@ type DB = Awaited<ReturnType<typeof createClient>>;
 
 const toRange = (t: string) => t.slice(0, 5);
 
+type StaffSvc = { staff_id: string; duration_min: number | null };
+type Req = { quantity: number; resource_types: { code: string } | { code: string }[] | null };
+type SvcRow = {
+  id: string;
+  duration_min: number;
+  prep_min: number;
+  cleanup_min: number;
+  cleanup_occupies_staff: boolean;
+  buffer_min: number;
+  staff_services: StaffSvc[] | null;
+  service_resource_requirements: Req[] | null;
+};
+
+export interface LoadSlotsArgs {
+  locationId: string;
+  /** Un solo servicio (uso original). */
+  serviceId?: string;
+  /** Varios servicios consecutivos en la misma visita, en orden. Tiene prioridad sobre serviceId. */
+  serviceIds?: string[];
+  date: string;
+  preferredStaffId?: string;
+  /** Ignora la ocupación de esta cita (para reprogramarla sin que se estorbe a sí misma). */
+  ignoreAppointmentId?: string;
+}
+
 /**
  * Carga los datos del día y calcula horarios. La base de datos vuelve a validar todo al
  * reservar (exclusión), así que una carrera entre consulta y reserva nunca produce doble reserva.
  */
-export async function loadSlots(
-  supabase: DB,
-  args: { locationId: string; serviceId: string; date: string; preferredStaffId?: string },
-): Promise<{ slots: Slot[]; error?: string }> {
-  const [{ data: loc }, { data: svc }, { data: settings }] = await Promise.all([
+export async function loadSlots(supabase: DB, args: LoadSlotsArgs): Promise<{ slots: Slot[]; error?: string }> {
+  const ids = (args.serviceIds?.length ? args.serviceIds : args.serviceId ? [args.serviceId] : []).filter(Boolean);
+  if (ids.length === 0) return { slots: [], error: "Selecciona al menos un servicio" };
+  const unique = [...new Set(ids)];
+
+  const [{ data: loc }, { data: svcRows }, { data: settings }] = await Promise.all([
     supabase.from("locations").select("timezone").eq("id", args.locationId).single(),
     supabase
       .from("services")
       .select("id, duration_min, prep_min, cleanup_min, cleanup_occupies_staff, buffer_min, staff_services(staff_id, duration_min), service_resource_requirements(quantity, resource_types(code))")
-      .eq("id", args.serviceId)
-      .single(),
+      .in("id", unique),
     supabase.from("business_settings").select("booking_policy").eq("id", 1).maybeSingle(),
   ]);
-  if (!loc || !svc) return { slots: [], error: "Servicio o sucursal no encontrados" };
+  const byId = new Map(((svcRows ?? []) as unknown as SvcRow[]).map((s) => [s.id, s]));
+  if (!loc || unique.some((id) => !byId.has(id))) return { slots: [], error: "Servicio o sucursal no encontrados" };
   const tz = loc.timezone as string;
   const weekday = localWeekday(args.date);
   const { start, end } = dayRange(args.date);
 
-  type StaffSvc = { staff_id: string; duration_min: number | null };
-  type Req = { quantity: number; resource_types: { code: string } | { code: string }[] | null };
-  const staffServices = (svc.staff_services ?? []) as StaffSvc[];
-  const staffIds = staffServices.map((s) => s.staff_id);
-  const reqs = (svc.service_resource_requirements ?? []) as Req[];
-  const requiredTypes = reqs.flatMap((r) => {
-    const t = Array.isArray(r.resource_types) ? r.resource_types[0] : r.resource_types;
-    return t ? Array.from({ length: r.quantity }, () => t.code) : [];
-  });
+  const services = ids.map((id) => byId.get(id)!);
+  const staffIds = [...new Set(services.flatMap((s) => (s.staff_services ?? []).map((x) => x.staff_id)))];
 
   const [{ data: hours }, { data: special }, { data: schedules }, { data: busy }, { data: resources }] = await Promise.all([
     supabase.from("business_hours").select("opens_at, closes_at").eq("location_id", args.locationId).eq("weekday", weekday),
@@ -54,7 +73,7 @@ export async function loadSlots(
     staffIds.length
       ? supabase.from("staff_schedules").select("staff_id, starts_at, ends_at").in("staff_id", staffIds).eq("weekday", weekday)
       : Promise.resolve({ data: [] as { staff_id: string; starts_at: string; ends_at: string }[] }),
-    supabase.from("v_busy_allocations").select("staff_id, resource_id, occupied").overlaps("occupied", `[${start},${end})`),
+    supabase.from("v_busy_allocations").select("staff_id, resource_id, occupied, appointment_id").overlaps("occupied", `[${start},${end})`),
     supabase.from("resources").select("id, resource_types(code)").eq("location_id", args.locationId).eq("is_active", true),
   ]);
 
@@ -63,23 +82,32 @@ export async function loadSlots(
     ? [{ date: args.date, ranges: special.is_closed ? null : [{ start: toRange(special.opens_at!), end: toRange(special.closes_at!) }] }]
     : [];
   const businessHours = resolveDaySchedule({ date: args.date, timeZone: tz, weekly, specialDays });
-  const busyList = (busy ?? []).map((b) => ({ ...b, interval: parsePgRange(b.occupied as string) }));
+  const busyList = (busy ?? [])
+    .filter((b) => !args.ignoreAppointmentId || b.appointment_id !== args.ignoreAppointmentId)
+    .map((b) => ({ ...b, interval: parsePgRange(b.occupied as string) }));
 
-  const spec: ServiceSpec = {
-    serviceId: svc.id,
-    durationMin: svc.duration_min,
-    durationByStaff: Object.fromEntries(staffServices.filter((s) => s.duration_min).map((s) => [s.staff_id, s.duration_min!])),
-    prepMin: svc.prep_min,
-    cleanupMin: svc.cleanup_min,
-    cleanupOccupiesStaff: svc.cleanup_occupies_staff,
-    bufferMin: svc.buffer_min,
-    eligibleStaffIds: staffIds,
-    requiredResourceTypes: requiredTypes,
-  };
+  const specs: ServiceSpec[] = services.map((svc) => {
+    const staffServices = svc.staff_services ?? [];
+    const requiredTypes = (svc.service_resource_requirements ?? []).flatMap((r) => {
+      const t = Array.isArray(r.resource_types) ? r.resource_types[0] : r.resource_types;
+      return t ? Array.from({ length: r.quantity }, () => t.code) : [];
+    });
+    return {
+      serviceId: svc.id,
+      durationMin: svc.duration_min,
+      durationByStaff: Object.fromEntries(staffServices.filter((s) => s.duration_min).map((s) => [s.staff_id, s.duration_min!])),
+      prepMin: svc.prep_min,
+      cleanupMin: svc.cleanup_min,
+      cleanupOccupiesStaff: svc.cleanup_occupies_staff,
+      bufferMin: svc.buffer_min,
+      eligibleStaffIds: staffServices.map((s) => s.staff_id),
+      requiredResourceTypes: requiredTypes,
+    };
+  });
   const policy = (settings?.booking_policy ?? {}) as { min_lead_minutes?: number; slot_step_minutes?: number };
 
   const req: AvailabilityRequest = {
-    services: [spec],
+    services: specs,
     businessHours,
     staff: staffIds.map((id) => ({
       staffId: id,
