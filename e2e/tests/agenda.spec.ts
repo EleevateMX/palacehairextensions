@@ -3,6 +3,16 @@ import { choose, db, futureWorkday, login, USERS } from "./helpers";
 
 test("recepción agenda una cita desde horarios válidos y aparece en la agenda", async ({ page }) => {
   const date = futureWorkday(8);
+  // Prueba repetible: libera el día antes de agendar.
+  await db.query(
+    `update appointment_allocations set active = false where appointment_id in (
+       select id from appointments where (starts_at at time zone 'America/Mexico_City')::date = $1)`,
+    [date],
+  );
+  await db.query(
+    `update appointments set booking_status = 'cancelled' where (starts_at at time zone 'America/Mexico_City')::date = $1`,
+    [date],
+  );
   await login(page, USERS.reception);
   await page.goto(`/agenda/nueva?date=${date}`);
   await choose(page, "Clienta", "Demo Uno");
