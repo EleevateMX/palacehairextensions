@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { addDays } from "@palace/domain";
+import { Bar } from "@/components/reports";
 import { Badge, Card, EmptyState, PageHeader, Stat } from "@/components/ui";
 import { dayRange } from "@/lib/day";
 import { hour, longDate, mxn, todayLocal } from "@/lib/format";
+import { currentLocationId } from "@/lib/location";
+import { monthStart } from "@/lib/period";
+import { loadBookingKpis, loadOccupancy, loadProductivity, loadServiceProfitability, pct } from "@/lib/reports";
 import { can, requireStaff } from "@/lib/staff";
 
 export const metadata: Metadata = { title: "Inicio" };
@@ -13,9 +18,14 @@ export default async function DashboardPage() {
   const { start, end } = dayRange(today);
   const seesMoney = can(staff, "owner", "admin", "receptionist", "sales");
   const seesReception = can(staff, "owner", "admin", "receptionist");
+  const isManager = can(staff, "owner", "admin");
+  const locationId = await currentLocationId(supabase, staff);
+  const todayPeriod = { from: today, to: today };
+  const last30 = { from: addDays(today, -29), to: today };
+  const thisMonth = { from: monthStart(today), to: today };
 
-  // Cada consulta respeta RLS: lo que el rol no puede ver regresa vacío.
-  const [appts, sales, lowStock, alerts, conversations] = await Promise.all([
+  // Cada consulta respeta RLS y la validación de rol de las RPC; todas en paralelo.
+  const [appts, sales, lowStock, alerts, conversations, occupancy, todayLines, kpis, profitable, productivity] = await Promise.all([
     supabase
       .from("appointments")
       .select("id, starts_at, booking_status, attendance_status, payment_status, clients(first_name, last_name), appointment_services(services(name), staff_members(display_name))")
@@ -33,12 +43,29 @@ export default async function DashboardPage() {
     seesReception
       ? supabase.from("conversations").select("id", { count: "exact", head: true }).in("state", ["pending_human", "assigned"])
       : Promise.resolve({ count: 0 }),
+    locationId ? loadOccupancy(supabase, locationId, todayPeriod) : Promise.resolve(null),
+    seesMoney
+      ? supabase
+          .from("sale_lines")
+          .select("kind, total_cents, refunded_cents, sales!inner(created_at, status)")
+          .gte("sales.created_at", start)
+          .lt("sales.created_at", end)
+          .neq("sales.status", "voided")
+      : Promise.resolve({ data: [] as { kind: string; total_cents: number; refunded_cents: number }[] }),
+    seesReception && locationId ? loadBookingKpis(supabase, locationId, last30) : Promise.resolve(null),
+    isManager && locationId ? loadServiceProfitability(supabase, locationId, thisMonth) : Promise.resolve(null),
+    isManager && locationId ? loadProductivity(supabase, locationId, todayPeriod) : Promise.resolve(null),
   ]);
 
   const appointments = appts.data ?? [];
   const salesTotal = (sales.data ?? []).reduce((s, x) => s + x.total_cents, 0);
   const ticket = sales.data?.length ? Math.round(salesTotal / sales.data.length) : 0;
   const upcoming = appointments.filter((a) => new Date(a.starts_at) > new Date()).slice(0, 6);
+  const lines = (todayLines.data ?? []) as { kind: string; total_cents: number; refunded_cents: number }[];
+  const servicesToday = lines.filter((l) => l.kind === "service" || l.kind === "package").reduce((a, l) => a + l.total_cents - l.refunded_cents, 0);
+  const productsToday = lines.filter((l) => l.kind === "product").reduce((a, l) => a + l.total_cents - l.refunded_cents, 0);
+  const k = kpis?.kpis;
+  const topProfitable = (profitable?.rows ?? []).slice(0, 5);
 
   return (
     <>
@@ -48,6 +75,16 @@ export default async function DashboardPage() {
         {seesMoney ? <Stat label="Ventas hoy" value={mxn(salesTotal)} hint={`${sales.data?.length ?? 0} tickets`} /> : null}
         {seesMoney ? <Stat label="Ticket promedio" value={mxn(ticket)} /> : null}
         {seesReception ? <Stat label="Conversaciones pendientes" value={String(conversations.count ?? 0)} hint="Bandeja disponible en V3" /> : null}
+        <Stat
+          label="Ocupación del día"
+          value={pct(occupancy?.totalPct ?? null)}
+          hint={occupancy ? `${Math.round(occupancy.total.booked / 60)} h reservadas de ${Math.round((occupancy.total.scheduled - occupancy.total.unavailable) / 60)} h disponibles` : undefined}
+        />
+        {seesMoney ? <Stat label="Servicios hoy" value={mxn(servicesToday)} hint="Neto de descuentos y devoluciones" /> : null}
+        {seesMoney ? <Stat label="Productos hoy" value={mxn(productsToday)} hint="Neto de descuentos y devoluciones" /> : null}
+        {k ? <Stat label="Cancelación (30 días)" value={pct(k.cancellationRatePct)} hint={`${k.cancelled} de ${k.appointmentsTotal} citas`} /> : null}
+        {k ? <Stat label="No-show (30 días)" value={pct(k.noShowRatePct)} hint={`${k.noShow} de ${k.completed + k.noShow}`} /> : null}
+        {k ? <Stat label="Clientas nuevas (30 días)" value={String(k.clientsNew)} hint={`${k.clientsReturning} recurrentes`} /> : null}
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -93,6 +130,63 @@ export default async function DashboardPage() {
             </ul>
           )}
         </Card>
+
+        {productivity ? (
+          <Card title="Productividad de hoy">
+            {productivity.rows.length === 0 ? (
+              <EmptyState title="Sin personal reservable" />
+            ) : (
+              <ul className="space-y-3 text-sm">
+                {productivity.rows.map((r) => (
+                  <li key={r.staffId}>
+                    <div className="flex justify-between gap-2">
+                      <span className="truncate">{r.name}</span>
+                      <span className="tabular-nums text-muted">
+                        {r.completedAppointments} citas · {mxn(r.servicesRevenueCents + r.productsRevenueCents)}
+                      </span>
+                    </div>
+                    <Bar value={r.occupancyPct ?? 0} max={100} label={r.occupancyPct === null ? "Sin turno" : `${pct(r.occupancyPct)} ocupación`} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        ) : occupancy && occupancy.rows.length ? (
+          <Card title="Ocupación por especialista hoy">
+            <ul className="space-y-3 text-sm">
+              {occupancy.rows.map((r) => (
+                <li key={r.staffId}>
+                  <span className="block truncate">{r.name}</span>
+                  <Bar value={r.occupancyPct ?? 0} max={100} label={r.occupancyPct === null ? "Sin turno" : pct(r.occupancyPct)} />
+                </li>
+              ))}
+            </ul>
+          </Card>
+        ) : null}
+
+        {profitable ? (
+          <Card title="Servicios más rentables del mes">
+            {topProfitable.length === 0 ? (
+              <EmptyState title="Sin servicios completados este mes" />
+            ) : (
+              <ul className="divide-y divide-line text-sm">
+                {topProfitable.map((r) => (
+                  <li key={r.serviceId} className="flex justify-between gap-2 py-2">
+                    <span className="truncate">
+                      {r.name} <span className="text-muted">· {r.count}</span>
+                    </span>
+                    <span className="tabular-nums">
+                      {mxn(r.marginCents)} <span className="text-muted">({pct(r.marginPct)})</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Link href="/finanzas" className="mt-3 inline-block text-sm underline">
+              Ver finanzas
+            </Link>
+          </Card>
+        ) : null}
 
         {seesReception ? (
           <Card title="Alertas operativas" className="md:col-span-2">

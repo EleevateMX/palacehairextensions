@@ -64,6 +64,7 @@ export const MESSAGES: Record<string, string> = {
   SUPPLIER_NOT_FOUND: "El proveedor no existe o está inactivo.",
   LOCATION_NOT_FOUND: "La sucursal no existe o está inactiva.",
   PO_EMPTY: "La orden de compra necesita al menos una partida.",
+  INVALID_RANGE: "El periodo debe ser válido y de máximo un año.",
 };
 
 export function businessMessage(error: { message?: string; code?: string } | null | undefined, fallback?: string): string {

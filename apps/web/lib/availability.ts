@@ -9,10 +9,12 @@ import {
   type Slot,
   type WeeklyTemplate,
 } from "@palace/domain";
+import type { createAdminClient } from "./supabase/admin";
 import type { createClient } from "./supabase/server";
 import { dayRange } from "./day";
 
-type DB = Awaited<ReturnType<typeof createClient>>;
+/** Cliente con sesión (recepción) o cliente de servidor con llave secreta (portal público). */
+type DB = Awaited<ReturnType<typeof createClient>> | ReturnType<typeof createAdminClient>;
 
 const toRange = (t: string) => t.slice(0, 5);
 
@@ -39,6 +41,10 @@ export interface LoadSlotsArgs {
   preferredStaffId?: string;
   /** Ignora la ocupación de esta cita (para reprogramarla sin que se estorbe a sí misma). */
   ignoreAppointmentId?: string;
+  /** Anticipación mínima en minutos (portal: business_settings.booking_policy.min_lead_minutes). Por omisión 0. */
+  minLeadMin?: number;
+  /** Restringe el personal elegible (portal: solo personal activo y reservable). */
+  allowedStaffIds?: string[];
 }
 
 /**
@@ -65,7 +71,9 @@ export async function loadSlots(supabase: DB, args: LoadSlotsArgs): Promise<{ sl
   const { start, end } = dayRange(args.date);
 
   const services = ids.map((id) => byId.get(id)!);
-  const staffIds = [...new Set(services.flatMap((s) => (s.staff_services ?? []).map((x) => x.staff_id)))];
+  const staffIds = [...new Set(services.flatMap((s) => (s.staff_services ?? []).map((x) => x.staff_id)))].filter(
+    (id) => !args.allowedStaffIds || args.allowedStaffIds.includes(id),
+  );
 
   const [{ data: hours }, { data: special }, { data: schedules }, { data: busy }, { data: resources }] = await Promise.all([
     supabase.from("business_hours").select("opens_at, closes_at").eq("location_id", args.locationId).eq("weekday", weekday),
@@ -100,7 +108,11 @@ export async function loadSlots(supabase: DB, args: LoadSlotsArgs): Promise<{ sl
       cleanupMin: svc.cleanup_min,
       cleanupOccupiesStaff: svc.cleanup_occupies_staff,
       bufferMin: svc.buffer_min,
-      eligibleStaffIds: staffServices.map((s) => s.staff_id),
+      eligibleStaffIds: staffServices
+        .map((s) => s.staff_id)
+        .filter((id) => !args.allowedStaffIds || args.allowedStaffIds.includes(id)),
+      // Si el servicio tiene personal capacitado pero ninguno es elegible (filtro), no hay horarios sin personal.
+      requiresStaff: staffServices.length > 0,
       requiredResourceTypes: requiredTypes,
     };
   });
@@ -131,7 +143,7 @@ export async function loadSlots(supabase: DB, args: LoadSlotsArgs): Promise<{ sl
     preferredStaffId: args.preferredStaffId,
     stepMin: policy.slot_step_minutes ?? 15,
     now: Date.now(),
-    minLeadMin: 0, // recepción puede agendar con poca anticipación; el portal público usará policy.min_lead_minutes
+    minLeadMin: args.minLeadMin ?? 0, // recepción puede agendar con poca anticipación; el portal pasa su política
     window: { start: Date.parse(start), end: Date.parse(end) },
   };
   return { slots: findAvailableSlots(req) };
