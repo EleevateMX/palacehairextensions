@@ -2,7 +2,7 @@
 
 Comandos: `pnpm test` (dominio) · `pnpm test:db` (migraciones + RLS + concurrencia en PostgreSQL real) · `pnpm --filter @palace/web build`.
 
-**Resultado verificado el 2026-10-21 en este entorno:** dominio 26/26 ✅ · base de datos 30/30 ✅ (PostgreSQL 16.15) · build de Next.js ✅ · *smoke test* del servidor (login 200, rutas protegidas redirigen a `/login`, cabeceras de seguridad) ✅.
+**Resultado verificado el 2026-10-22 en este entorno:** dominio 26/26 ✅ · base de datos 83/83 ✅ (PostgreSQL 16.15; CI usa 17) · build de Next.js ✅ · **E2E 73/73 ✅** (Playwright + Chromium contra los binarios oficiales de Supabase Auth v2.185.0 y PostgREST v13.0.7; `pnpm --filter @palace/e2e exec playwright test` tras `bash scripts/local-stack/start.sh`), repetido en corridas consecutivas sobre la misma BD.
 
 ## 1. Escenarios obligatorios
 | # | Escenario | Criterio | Prueba | Estado |
@@ -34,5 +34,8 @@ Limpieza de estación (15:00 → 15:20), idempotencia de citas y ventas, precio 
 - **Seguridad**: RLS en todas las tablas; ninguna función pública ejecutable por `anon`; llaves secretas solo en servidor.
 - **UX**: estados de carga, error y vacío en cada pantalla; usable a 360 px de ancho; botones de al menos 44 px de alto.
 
-## 4. Pendiente de automatizar
-E2E con Playwright (requiere proyecto Supabase local o de staging), verificación HTTP de firmas de webhooks (con el adaptador real), políticas de Storage (requieren Supabase real).
+## 4. Cobertura E2E (flujos en el navegador)
+Agenda (agendar desde horarios válidos, dos servicios, tono con reserva, completar con consumo real y mantenimiento, cancelar, reprogramar, cambiar especialista, bloqueos, lista de espera, material faltante, vista de estilista, 360 px), recepción, configuración (servicios, recursos, comisiones, horarios, cotizador, permisos), personal (alta que inicia sesión, vacaciones, conflictos, candado de propietaria), clientas (alta con consentimientos, revocación, notas sensibles, apartado, anonimización, móvil), cotizador, inventario (alta, entradas, mermas, ajustes, kardex, conteos, compras, permisos de costo, CSV), POS (pago dividido, propina, doble clic, descuentos por rol, cupón, saldo, tarjeta de regalo, anticipo de cita), caja (corte con desglose), ventas (devolución, cancelación, CSV), reportes y finanzas (comisiones, gastos, rentabilidad, CSV, permisos) y portal público (sin anticipo, con anticipo, privacidad, honeypot).
+
+## 5. Pendiente de automatizar
+Verificación HTTP de firmas de webhooks (con el adaptador real de pagos/Meta) y políticas de Storage (requieren Supabase real).

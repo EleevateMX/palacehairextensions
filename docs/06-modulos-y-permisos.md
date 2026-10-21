@@ -29,6 +29,10 @@ L = leer · E = escribir directo · R = solo mediante funciones RPC · — = sin
 | Conversaciones | L/E | L/E | L/E | — | — | — |
 | Bitácora de auditoría | L | — | — | — | — | — |
 | Anonimizar clienta | R | R | — | — | — | — |
+| Reglas de comisión | L/E | L/E | — | Las suyas | — | — |
+| Gastos y finanzas | L/E | L/E | — | — | — | — |
+| Reportes | L | L | KPIs de agenda | Sus comisiones | — | — |
+| Alta de personal (Auth) | ✅ (incl. propietarias) | ✅ (sin rol propietaria) | — | — | — | — |
 
 Usuarias autenticadas **sin** expediente de personal activo no ven datos operativos. `anon` solo ve catálogo público (servicios reservables en línea, productos a la venta en línea, horarios) y nunca costos.
 

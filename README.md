@@ -2,7 +2,7 @@
 
 Plataforma de gestión integral para un salón especializado en extensiones de cabello: agenda inteligente con control de capacidad, inventario por tono/largo/técnica con reservas por clienta, punto de venta, CRM, personal y comisiones, y base para tienda en línea, pagos y mensajería con IA.
 
-> Estado: **entrega 1** — investigación, auditoría, diseño y entorno de desarrollo del MVP. Ver [`docs/09-roadmap.md`](docs/09-roadmap.md).
+> Estado: **entrega 2** — MVP completo (configuración, personal, agenda, recepción, clientas, cotizador, inventario, POS, caja, ventas, reportes, finanzas y portal de reservas), probado de punta a punta en el stack local. Ver [`docs/09-roadmap.md`](docs/09-roadmap.md).
 > Identidad visual **provisional** (tokens neutros); se personaliza al definir la marca.
 
 ## Documentación
@@ -23,11 +23,13 @@ Plataforma de gestión integral para un salón especializado en extensiones de c
 
 ## Estructura
 ```
-apps/web            Next.js 16 (panel del personal)
+apps/web            Next.js 16 (panel del personal y portal público /reservar)
+e2e                 Pruebas E2E con Playwright contra el stack local
 packages/domain     Lógica pura: disponibilidad, comisiones, cotizador, mantenimiento, transferencia bot→humano
 supabase/migrations Esquema versionado con RLS y funciones atómicas
 supabase/tests      Pruebas contra PostgreSQL real (concurrencia, permisos, flujos)
 supabase/seed.sql   Datos ficticios de desarrollo
+scripts/local-stack Supabase mínimo sin Docker para desarrollo y E2E
 ```
 
 ## Requisitos
@@ -42,6 +44,17 @@ pnpm test:db       # crea una BD desechable "palace_test", aplica migraciones y 
 pnpm typecheck
 pnpm --filter @palace/web build
 ```
+
+### Entorno local sin Docker (Auth + PostgREST oficiales)
+```bash
+# Requiere PostgreSQL 16+ escuchando en el socket /tmp, puerto 54329 (o PGHOST/PGPORT).
+bash scripts/local-stack/start.sh      # descarga binarios, recrea la BD palace_local, aplica migraciones y seed,
+                                       # levanta Auth (9999), PostgREST (3001) y la puerta http://127.0.0.1:54321
+cat /tmp/palace-local-run/env > apps/web/.env.local
+pnpm dev                               # personal ficticio: propietaria@palace.local, recepcion@, ana@, bea@, almacen@ — contraseña PalaceDev2026
+pnpm --filter @palace/web build && pnpm --filter @palace/e2e exec playwright test   # E2E
+```
+`STACK_OFFSET=n` levanta copias en paralelo en otros puertos.
 
 ### Entorno local completo (con Docker)
 ```bash

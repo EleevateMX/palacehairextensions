@@ -163,3 +163,22 @@ describe("Segmentos de clientas (v_client_activity)", () => {
     ).rejects.toThrow(/row-level security/);
   });
 });
+
+describe("Anonimización completa", () => {
+  it("libera apartados manuales y cierra recordatorios y lista de espera", async () => {
+    const [ids, asRole, ownerUser, q] = [IDS, as, owner, superQuery];
+    await resetFixtures();
+    await asRole(ownerUser, (c) => c.query(`select public.reserve_stock($1, $2, 1, $3, 'apartado')`, [ids.hairVariant, ids.location, ids.clientA]));
+    await q(`insert into public.maintenance_reminders (client_id, due_date, remind_on) values ($1, current_date + 10, current_date + 3)`, [ids.clientA]);
+    await q(`insert into public.waitlist_entries (client_id, service_id, desired_from, desired_to) values ($1, $2, current_date, current_date + 7)`, [ids.clientA, ids.install]);
+    await asRole(ownerUser, (c) => c.query(`select public.anonymize_client($1)`, [ids.clientA]));
+    const [st] = await q(`select reserved from public.stock_levels where variant_id = $1`, [ids.hairVariant]);
+    expect(Number(st.reserved)).toBe(0);
+    const [rem] = await q(`select status from public.maintenance_reminders where client_id = $1`, [ids.clientA]);
+    expect(rem.status).toBe("dismissed");
+    const [w] = await q(`select status from public.waitlist_entries where client_id = $1`, [ids.clientA]);
+    expect(w.status).toBe("cancelled");
+    const [cl] = await q(`select first_name, phone, is_anonymized from public.clients where id = $1`, [ids.clientA]);
+    expect(cl).toEqual({ first_name: "Anonimizada", phone: null, is_anonymized: true });
+  });
+});

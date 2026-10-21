@@ -91,3 +91,16 @@ erDiagram
 - Desglose de efectivo por denominación en el corte (portar de Shakeaholic).
 - Pedidos de tienda en línea (`online_orders`) que reutilizan `stock_reservations` con `source = 'online_order'` y expiración (V2).
 - Gastos fijos/variables y categorías contables (V2).
+
+## 7. Adiciones de la entrega 2 (migraciones 2026-10-22 a 2026-10-24)
+| Migración | Contenido |
+|---|---|
+| `20261022000100_mvp_complemento` | `commission_rules`, `expenses`, `business_settings.quote_config`, corte con desglose (`cash_sessions.counted_breakdown`), `finance_summary`, `service_profitability`, `portal_book` (solo servidor), `remove_block`, `update_appointment_notes`, costo por omisión en salidas, candado del rol de propietaria |
+| `20261023000100_configuracion` | `replace_business_hours`, `replace_staff_schedule` (reemplazo atómico, sin traslapes), `cancel_time_off` |
+| `20261023000300_crm` | Vista `v_client_activity` (segmentos), `create_client_with_consents`, `record_client_consent`, `app.business_today()` |
+| `20261023000400_inventario` | `create_purchase_order`, `set_bin_location`, `cancel_stock_count` |
+| `20261023000500_pos` | `sale_payments.cash_session_id`, cálculo único del esperado de caja, `current_cash_session`, `cash_session_summary`, cupones sin distinción de mayúsculas |
+| `20261023000600_reportes` | `report_sales_daily`, `report_top_items`, `report_staff_productivity`, `report_booking_kpis`, `report_occupancy`, `report_tips_by_staff` |
+| `20261024000100_anonimizar_completo` | La anonimización libera apartados manuales y cierra recordatorios y lista de espera |
+
+Todas las funciones nuevas: `security definer`, `search_path = ''`, verificación de rol y sin ejecución para `anon`.
