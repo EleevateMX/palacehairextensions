@@ -9,10 +9,12 @@ import {
   type Slot,
   type WeeklyTemplate,
 } from "@palace/domain";
+import type { createAdminClient } from "./supabase/admin";
 import type { createClient } from "./supabase/server";
 import { dayRange } from "./day";
 
-type DB = Awaited<ReturnType<typeof createClient>>;
+/** Cliente con sesión (recepción) o cliente de servidor con llave secreta (portal público). */
+type DB = Awaited<ReturnType<typeof createClient>> | ReturnType<typeof createAdminClient>;
 
 const toRange = (t: string) => t.slice(0, 5);
 
@@ -22,7 +24,16 @@ const toRange = (t: string) => t.slice(0, 5);
  */
 export async function loadSlots(
   supabase: DB,
-  args: { locationId: string; serviceId: string; date: string; preferredStaffId?: string },
+  args: {
+    locationId: string;
+    serviceId: string;
+    date: string;
+    preferredStaffId?: string;
+    /** Anticipación mínima en minutos (portal: business_settings.booking_policy.min_lead_minutes). Por omisión 0. */
+    minLeadMin?: number;
+    /** Restringe el personal elegible (portal: solo personal activo y reservable). */
+    allowedStaffIds?: string[];
+  },
 ): Promise<{ slots: Slot[]; error?: string }> {
   const [{ data: loc }, { data: svc }, { data: settings }] = await Promise.all([
     supabase.from("locations").select("timezone").eq("id", args.locationId).single(),
@@ -41,7 +52,9 @@ export async function loadSlots(
   type StaffSvc = { staff_id: string; duration_min: number | null };
   type Req = { quantity: number; resource_types: { code: string } | { code: string }[] | null };
   const staffServices = (svc.staff_services ?? []) as StaffSvc[];
-  const staffIds = staffServices.map((s) => s.staff_id);
+  const staffIds = staffServices
+    .map((s) => s.staff_id)
+    .filter((id) => !args.allowedStaffIds || args.allowedStaffIds.includes(id));
   const reqs = (svc.service_resource_requirements ?? []) as Req[];
   const requiredTypes = reqs.flatMap((r) => {
     const t = Array.isArray(r.resource_types) ? r.resource_types[0] : r.resource_types;
@@ -74,6 +87,8 @@ export async function loadSlots(
     cleanupOccupiesStaff: svc.cleanup_occupies_staff,
     bufferMin: svc.buffer_min,
     eligibleStaffIds: staffIds,
+    // Si el servicio tiene personal capacitado pero ninguno es elegible (filtro), no hay horarios sin personal.
+    requiresStaff: staffServices.length > 0,
     requiredResourceTypes: requiredTypes,
   };
   const policy = (settings?.booking_policy ?? {}) as { min_lead_minutes?: number; slot_step_minutes?: number };
@@ -103,7 +118,7 @@ export async function loadSlots(
     preferredStaffId: args.preferredStaffId,
     stepMin: policy.slot_step_minutes ?? 15,
     now: Date.now(),
-    minLeadMin: 0, // recepción puede agendar con poca anticipación; el portal público usará policy.min_lead_minutes
+    minLeadMin: args.minLeadMin ?? 0, // recepción puede agendar con poca anticipación; el portal pasa policy.min_lead_minutes
     window: { start: Date.parse(start), end: Date.parse(end) },
   };
   return { slots: findAvailableSlots(req) };
