@@ -1,0 +1,20 @@
+{
+  "name": "@palace/db-tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bash ../../scripts/db-test.sh",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@palace/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "pg": "^8.13.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.0"
+  }
+}
