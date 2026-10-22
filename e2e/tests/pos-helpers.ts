@@ -5,7 +5,7 @@ import { db } from "./helpers";
 export const SEED = {
   location: "00000000-0000-4000-8000-000000000001",
   variant4: "00000000-0000-4000-8000-000000000411", // Cinta 55 cm · tono 4 · $1,400
-  sku4: "DEV-CIN-55-04",
+  sku4: "CIN-55-04",
   variantRep: "00000000-0000-4000-8000-000000000421", // Cinta de repuesto · $250
   maintenance: "00000000-0000-4000-8000-000000000303", // Mantenimiento de cinta · $1,200
   wash: "00000000-0000-4000-8000-000000000304", // Lavado y peinado · $450

@@ -12,7 +12,7 @@ test("configuración y personal funcionan a 360 px sin desplazamiento horizontal
   await page.setViewportSize({ width: 360, height: 740 });
   await login(page, USERS.owner);
   const { rows } = await db.query(`select id from services order by name limit 1`);
-  const { rows: people } = await db.query(`select id from staff_members where display_name = 'Ana (DEV)'`);
+  const { rows: people } = await db.query(`select id from staff_members where display_name = 'Ana López'`);
   for (const path of [
     "/configuracion",
     "/configuracion/horarios",
@@ -63,17 +63,17 @@ test("la propietaria crea y edita un servicio y su personal capacitado", async (
   await expect(page.getByRole("status").filter({ hasText: "Servicio guardado." })).toBeVisible();
 
   // Personal capacitado con duración propia.
-  await page.getByLabel("Capacitada: Ana (DEV)").check();
-  await page.getByLabel("Duración de Ana (DEV)").fill("75");
-  await page.getByLabel("Capacitada: Bea (DEV)").check();
-  await page.getByLabel("Precio de Bea (DEV)").fill("900");
+  await page.getByLabel("Capacitada: Ana López").check();
+  await page.getByLabel("Duración de Ana López").fill("75");
+  await page.getByLabel("Capacitada: Bea Torres").check();
+  await page.getByLabel("Precio de Bea Torres").fill("900");
   await page.getByRole("button", { name: "Guardar personal capacitado" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Personal capacitado guardado (2)" })).toBeVisible();
 
   // Quitar a Bea.
   await page.reload();
-  await expect(page.getByLabel("Capacitada: Bea (DEV)")).toBeChecked();
-  await page.getByLabel("Capacitada: Bea (DEV)").uncheck();
+  await expect(page.getByLabel("Capacitada: Bea Torres")).toBeChecked();
+  await page.getByLabel("Capacitada: Bea Torres").uncheck();
   await page.getByRole("button", { name: "Guardar personal capacitado" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Personal capacitado guardado (1)" })).toBeVisible();
 
@@ -94,7 +94,7 @@ test("la propietaria crea y edita un servicio y su personal capacitado", async (
     `select m.display_name, ss.duration_min from staff_services ss join staff_members m on m.id = ss.staff_id where ss.service_id = $1`,
     [serviceId],
   );
-  expect(qualified).toEqual([{ display_name: "Ana (DEV)", duration_min: 75 }]);
+  expect(qualified).toEqual([{ display_name: "Ana López", duration_min: 75 }]);
   const { rows: mats } = await db.query(`select material_role, is_variable, quantity::float q from service_materials where service_id = $1`, [serviceId]);
   expect(mats).toEqual([{ material_role: "hair", is_variable: true, q: 2 }]);
 });
@@ -134,9 +134,9 @@ test("la propietaria crea reglas de comisión (porcentaje y escalonada) y desact
   const note = `E2E ${stamp()}`;
   await login(page, USERS.owner);
   await page.goto("/configuracion/comisiones");
-  await choose(page, "Persona", "Bea (DEV)");
+  await choose(page, "Persona", "Bea Torres");
   await page.getByRole("button", { name: "Ver reglas" }).click();
-  await expect(page.getByRole("heading", { name: "Reglas de Bea (DEV)" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Reglas de Bea Torres" })).toBeVisible();
 
   const percent = page.locator("details").filter({ hasText: "% sobre servicios" });
   await percent.locator("summary").click();
@@ -158,7 +158,7 @@ test("la propietaria crea reglas de comisión (porcentaje y escalonada) y desact
   await expect(page.getByRole("listitem").filter({ hasText: `${note} tramos` })).toContainText(/desde \$10,000\.00 → 8 %/);
 
   const { rows } = await db.query(
-    `select r.rule from commission_rules r join staff_members m on m.id = r.staff_id where m.display_name = 'Bea (DEV)' and r.notes like $1 order by r.created_at`,
+    `select r.rule from commission_rules r join staff_members m on m.id = r.staff_id where m.display_name = 'Bea Torres' and r.notes like $1 order by r.created_at`,
     [`${note}%`],
   );
   expect(rows.map((r) => r.rule)).toEqual([

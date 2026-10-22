@@ -138,9 +138,9 @@ test.describe.serial("Inventario", () => {
     await form.getByRole("button", { name: "Crear proveedor" }).click();
     await expect(form.getByRole("status")).toContainText("Proveedor creado");
 
-    // Las sugerencias de reabasto prellenan la orden (semilla: DEV-CIN-55-613 está en su mínimo).
+    // Las sugerencias de reabasto prellenan la orden (semilla: CIN-55-613 está en su mínimo).
     await page.goto("/inventario/compras");
-    await expect(section(page, "Sugerencias de reabasto")).toContainText("DEV-CIN-55-613");
+    await expect(section(page, "Sugerencias de reabasto")).toContainText("CIN-55-613");
 
     await page.goto("/inventario/compras/nueva");
     await chooseIn(page.locator("main"), "Proveedor", SUPPLIER);

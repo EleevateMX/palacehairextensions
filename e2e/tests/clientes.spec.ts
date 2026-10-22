@@ -143,7 +143,7 @@ test("apartar un tono desde el expediente reserva existencias y liberarlo las de
   await login(page, USERS.reception);
   await page.goto(`/clientes/${id}?tab=inventario`);
   await expect(page.getByText("Sin inventario apartado")).toBeVisible();
-  await choose(page, "Producto o tono", "DEV-CIN-55-04");
+  await choose(page, "Producto o tono", "CIN-55-04");
   await page.getByLabel("Cantidad").fill("2");
   await page.getByRole("button", { name: "Apartar" }).click();
   await expect(page.getByText("Se apartaron 2 para la clienta.")).toBeVisible();

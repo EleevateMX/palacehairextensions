@@ -22,7 +22,7 @@ test.beforeEach(async ({ page }) => {
 test("todo el personal ve la lista; recepción no ve el alta", async ({ page }) => {
   await login(page, USERS.reception);
   await page.goto("/personal");
-  await expect(page.getByText("Ana (DEV)")).toBeVisible();
+  await expect(page.getByText("Ana López")).toBeVisible();
   await expect(page.getByRole("button", { name: "Dar de alta" })).toHaveCount(0);
   await page.goto("/personal/00000000-0000-4000-8000-000000000001");
   await expect(page.getByRole("alert").filter({ hasText: "No tienes permiso" })).toBeVisible();
@@ -89,7 +89,7 @@ test("la estilista solicita vacaciones y la propietaria las aprueba", async ({ p
   // Repetible: el día elegido no debe tener ocupaciones previas de Ana (de otras corridas).
   await db.query(
     `update appointment_allocations set active = false
-      where staff_id = (select id from staff_members where display_name = 'Ana (DEV)')
+      where staff_id = (select id from staff_members where display_name = 'Ana López')
         and occupied && tstzrange(($1::date)::timestamp at time zone 'America/Mexico_City',
                                   ($1::date + 1)::timestamp at time zone 'America/Mexico_City')`,
     [day],
@@ -110,8 +110,8 @@ test("la estilista solicita vacaciones y la propietaria las aprueba", async ({ p
   await login(page, USERS.owner);
   await page.goto("/personal/ausencias");
   const pending = page.getByTestId("pending-time-off").filter({ hasText: reason });
-  await pending.getByRole("button", { name: "Aprobar ausencia de Ana (DEV)" }).click();
-  await expect(page.getByTestId("approved-time-off").filter({ hasText: "Ana (DEV)" }).first()).toBeVisible();
+  await pending.getByRole("button", { name: "Aprobar ausencia de Ana López" }).click();
+  await expect(page.getByTestId("approved-time-off").filter({ hasText: "Ana López" }).first()).toBeVisible();
   await expect(page.getByTestId("pending-time-off").filter({ hasText: reason })).toHaveCount(0);
 
   const { rows } = await db.query(
@@ -132,7 +132,7 @@ test("aprobar una ausencia con citas muestra los conflictos con enlace a la cita
     await c.query("begin");
     await c.query(`select set_config('request.jwt.claims', '{"role":"service_role"}', true)`);
     const { rows: [ids] } = await c.query(`
-      select (select id from staff_members where display_name = 'Ana (DEV)') ana,
+      select (select id from staff_members where display_name = 'Ana López') ana,
              (select id from clients order by created_at limit 1) client,
              (select id from locations order by name limit 1) loc,
              (select r.id from resources r join resource_types t on t.id = r.resource_type_id where t.code = 'lavacabezas' limit 1) res,
@@ -161,7 +161,7 @@ test("aprobar una ausencia con citas muestra los conflictos con enlace a la cita
   await login(page, USERS.owner);
   await page.goto("/personal/ausencias");
   const pending = page.getByTestId("pending-time-off").filter({ hasText: reason });
-  await pending.getByRole("button", { name: "Aprobar ausencia de Ana (DEV)" }).click();
+  await pending.getByRole("button", { name: "Aprobar ausencia de Ana López" }).click();
   await expect(pending.getByRole("alert").filter({ hasText: "tiene citas o bloqueos" })).toBeVisible();
   const link = pending.getByRole("link", { name: /Lavado y peinado/ });
   await expect(link).toHaveAttribute("href", `/agenda/cita/${appointmentId!}`);
@@ -169,7 +169,7 @@ test("aprobar una ausencia con citas muestra los conflictos con enlace a la cita
   expect(rows[0].status).toBe("requested");
 
   // Se rechaza y deja de estar pendiente.
-  await pending.getByRole("button", { name: "Rechazar ausencia de Ana (DEV)" }).click();
+  await pending.getByRole("button", { name: "Rechazar ausencia de Ana López" }).click();
   await expect(page.getByTestId("pending-time-off").filter({ hasText: reason })).toHaveCount(0);
 });
 
@@ -192,7 +192,7 @@ test("solo la propietaria puede asignar el rol de propietaria", async ({ page })
   await page.goto("/personal");
   await expect(page.getByLabel("Rol").locator("option", { hasText: "Propietaria" })).toHaveCount(0);
   // Editar a la propietaria: la BD lo impide y se muestra el mensaje.
-  await page.getByRole("link", { name: "Propietaria (DEV)" }).click();
+  await page.getByRole("link", { name: "Mariana Ríos" }).click();
   await page.getByLabel("Nombre para mostrar").fill("Cambio no permitido");
   await page.getByRole("button", { name: "Guardar datos" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Solo la propietaria" })).toBeVisible();

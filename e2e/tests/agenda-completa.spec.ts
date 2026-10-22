@@ -199,20 +199,20 @@ test("cambiar de especialista solo ofrece personal capacitado y actualiza la cit
   await login(page, USERS.reception);
   const id = await book(page, { date, services: [SVC_MAINT], staff: "Ana" });
   await page.goto(`/agenda/cita/${id}`);
-  await expect(page.getByText("Especialista: Ana (DEV)")).toBeVisible();
+  await expect(page.getByText("Especialista: Ana López")).toBeVisible();
   await choose(page, "Cambiar especialista", "Bea");
   await page.getByRole("button", { name: "Cambiar", exact: true }).click();
-  await expect(page.getByText("Especialista: Bea (DEV)")).toBeVisible();
+  await expect(page.getByText("Especialista: Bea Torres")).toBeVisible();
   const { rows } = await db.query(
     `select m.display_name from appointment_services s join staff_members m on m.id = s.staff_id where s.appointment_id = $1`,
     [id],
   );
-  expect(rows).toEqual([{ display_name: "Bea (DEV)" }]);
+  expect(rows).toEqual([{ display_name: "Bea Torres" }]);
   const { rows: al } = await db.query(
     `select m.display_name from appointment_allocations a join staff_members m on m.id = a.staff_id where a.appointment_id = $1 and a.active`,
     [id],
   );
-  expect(al).toEqual([{ display_name: "Bea (DEV)" }]);
+  expect(al).toEqual([{ display_name: "Bea Torres" }]);
 });
 
 test("un bloqueo manual deja de ofrecer ese horario", async ({ page }) => {

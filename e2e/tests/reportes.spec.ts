@@ -43,11 +43,11 @@ test("la propietaria ve comisiones por estilista según su regla, ventas por mé
   await page.goto(`/reportes?${RANGE}`);
   await expect(page.getByRole("heading", { name: "Reportes" })).toBeVisible();
 
-  const anaRow = page.getByTestId("comision-Ana (DEV)");
+  const anaRow = page.getByTestId("comision-Ana López");
   await expect(anaRow.getByTestId("comision-total")).toHaveText("$40.00");
   await expect(anaRow).toContainText("$400.00"); // base neta de servicios
   await expect(anaRow).toContainText("$30.00"); // propinas aparte
-  await expect(page.getByTestId("comision-Bea (DEV)").getByTestId("comision-total")).toHaveText("$60.00");
+  await expect(page.getByTestId("comision-Bea Torres").getByTestId("comision-total")).toHaveText("$60.00");
 
   // Ventas por día y método.
   await expect(page.getByText("$1,600.00").first()).toBeVisible();
@@ -71,22 +71,22 @@ test("la exportación CSV trae BOM UTF-8 y el encabezado esperado", async ({ pag
   const com = await page.request.get(`/reportes/exportar/comisiones?${RANGE}`);
   const text = (await com.body()).subarray(3).toString("utf8");
   expect(text.split("\r\n")[0]).toBe("estilista,fecha,concepto,regla,bruto,descuento_y_devolucion,base_neta,comision");
-  expect(text).toContain("Ana (DEV),,TOTAL,,,,400.00,40.00");
+  expect(text).toContain("Ana López,,TOTAL,,,,400.00,40.00");
 });
 
 test("la estilista solo ve sus comisiones y no puede abrir finanzas", async ({ page }) => {
   await login(page, USERS.ana);
   await page.goto(`/reportes?${RANGE}`);
   await expect(page.getByRole("heading", { name: "Mis comisiones" })).toBeVisible();
-  await expect(page.getByTestId("comision-Ana (DEV)").getByTestId("comision-total")).toHaveText("$40.00");
-  await expect(page.getByText("Bea (DEV)")).toHaveCount(0);
+  await expect(page.getByTestId("comision-Ana López").getByTestId("comision-total")).toHaveText("$40.00");
+  await expect(page.getByText("Bea Torres")).toHaveCount(0);
   await expect(page.getByText("Ventas por día")).toHaveCount(0);
 
   // Exportaciones ajenas: prohibidas; la de comisiones solo trae sus líneas.
   expect((await page.request.get(`/reportes/exportar/ventas?${RANGE}`)).status()).toBe(403);
   const mine = (await (await page.request.get(`/reportes/exportar/comisiones?${RANGE}`)).body()).toString("utf8");
-  expect(mine).toContain("Ana (DEV)");
-  expect(mine).not.toContain("Bea (DEV)");
+  expect(mine).toContain("Ana López");
+  expect(mine).not.toContain("Bea Torres");
   expect((await page.request.get(`/finanzas/exportar/gastos?${RANGE}`)).status()).toBe(403);
 
   await page.goto("/finanzas");

@@ -9,7 +9,7 @@ const SVC_MAINT = "00000000-0000-4000-8000-000000000303";
 test("el tablero de recepción muestra la cita en servicio, estaciones libres y permite resolver alertas", async ({ page }) => {
   const { rows: who } = await db.query(
     `select (select id from clients where last_name = 'Demo Dos') client_id,
-            (select id from staff_members where display_name = 'Bea (DEV)') staff_id`,
+            (select id from staff_members where display_name = 'Bea Torres') staff_id`,
   );
   const { client_id, staff_id } = who[0];
   // Inicio = hace 30 min, sin salir del día local de hoy.

@@ -7,11 +7,11 @@ const key = env.SUPABASE_SECRET_KEY;
 export const DEV_PASSWORD = "PalaceDev2026";
 const LOCATION = "00000000-0000-4000-8000-000000000001";
 const people = [
-  { email: "propietaria@palace.local", name: "Propietaria (DEV)", role: "owner", bookable: false },
-  { email: "recepcion@palace.local", name: "Recepción (DEV)", role: "receptionist", bookable: false },
-  { email: "ana@palace.local", name: "Ana (DEV)", role: "stylist", bookable: true },
-  { email: "bea@palace.local", name: "Bea (DEV)", role: "stylist", bookable: true },
-  { email: "almacen@palace.local", name: "Almacén (DEV)", role: "inventory", bookable: false },
+  { email: "propietaria@palace.local", name: "Mariana Ríos", role: "owner", bookable: false },
+  { email: "recepcion@palace.local", name: "Regina Cab", role: "receptionist", bookable: false },
+  { email: "ana@palace.local", name: "Ana López", role: "stylist", bookable: true },
+  { email: "bea@palace.local", name: "Bea Torres", role: "stylist", bookable: true },
+  { email: "almacen@palace.local", name: "Iván Pech", role: "inventory", bookable: false },
 ];
 const h = { apikey: key, authorization: `Bearer ${key}`, "content-type": "application/json" };
 for (const p of people) {
