@@ -82,7 +82,7 @@ describe("Mensajería y webhooks", () => {
       as("service_role", (c) => c.query(`select public.ingest_webhook_event('whatsapp', 'wamid.2', '{}'::jsonb, false)`)),
     ).rejects.toThrow("INVALID_SIGNATURE");
     await expect(as(reception, (c) => c.query(`select public.ingest_webhook_event('whatsapp', 'wamid.3', '{}'::jsonb, true)`))).rejects.toThrow(
-      "FORBIDDEN",
+      /permission denied/,
     );
   });
 

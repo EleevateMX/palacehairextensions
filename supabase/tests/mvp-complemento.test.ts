@@ -136,7 +136,7 @@ describe("Portal público", () => {
   };
 
   it("solo el servidor puede reservar; exige aviso de privacidad y teléfono válido", async () => {
-    await expect(as(reception, (c) => c.query(`select public.portal_book($1::jsonb)`, [JSON.stringify(base)]))).rejects.toThrow("FORBIDDEN");
+    await expect(as(reception, (c) => c.query(`select public.portal_book($1::jsonb)`, [JSON.stringify(base)]))).rejects.toThrow(/permission denied/);
     await expect(
       as("service_role", (c) => c.query(`select public.portal_book($1::jsonb)`, [JSON.stringify({ ...base, accept_privacy: false })])),
     ).rejects.toThrow("PRIVACY_REQUIRED");
