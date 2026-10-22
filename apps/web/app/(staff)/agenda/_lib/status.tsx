@@ -1,6 +1,6 @@
-import { Badge } from "@/components/ui";
+import { Badge, type BadgeTone } from "@/components/ui";
 
-type Tone = "neutral" | "success" | "warning" | "danger";
+type Tone = BadgeTone;
 
 export const BOOKING: Record<string, [string, Tone]> = {
   hold: ["Apartado", "warning"],
@@ -12,7 +12,7 @@ export const BOOKING: Record<string, [string, Tone]> = {
 export const ATTENDANCE: Record<string, [string, Tone]> = {
   scheduled: ["Agendada", "neutral"],
   arrived: ["Llegó", "success"],
-  in_service: ["En servicio", "warning"],
+  in_service: ["En servicio", "nude"],
   completed: ["Terminada", "success"],
   no_show: ["No asistió", "danger"],
 };
@@ -62,6 +62,7 @@ export function StatusBadge({ kind, value }: { kind: "booking" | "attendance" | 
 /** Etiqueta corta para listas: el apartado manda sobre la asistencia. */
 export function ShortStatus({ booking, attendance }: { booking: string; attendance: string }) {
   if (booking === "hold") return <Badge tone="warning">Apartado</Badge>;
+  if (booking === "confirmed" && attendance === "scheduled") return <Badge tone="success">Confirmada</Badge>;
   const [label, tone] = pick(ATTENDANCE, attendance);
   return <Badge tone={tone}>{label}</Badge>;
 }
@@ -73,4 +74,12 @@ export const clientName = (c: { first_name: string; last_name: string | null } |
 export function one<T>(v: T | T[] | null | undefined): T | null {
   if (Array.isArray(v)) return v[0] ?? null;
   return v ?? null;
+}
+
+/** Color del borde izquierdo de una cita según su estado (agenda y listas). */
+export function statusAccent(booking: string, attendance: string): string {
+  if (booking === "hold") return "border-l-warning";
+  if (attendance === "no_show") return "border-l-danger";
+  if (attendance === "in_service") return "border-l-fg";
+  return "border-l-success";
 }

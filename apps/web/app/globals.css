@@ -1,35 +1,47 @@
 @import "tailwindcss";
 
 /*
- * Tokens de diseño PROVISIONALES (neutros). Reemplazar al definir la identidad de Palace.
- * Toda la UI usa estos tokens; ningún componente fija colores de marca directamente.
+ * Identidad Palace Hair Extensions — dirección "Champagne Luxe" (Claude Design, 2026-10-22).
+ * Marfil + negro elegante + oro champaña. Tipografías: Prata (display) + Figtree (texto),
+ * autoalojadas con next/font (app/layout.tsx expone --font-prata y --font-figtree).
+ * Todos los componentes usan estos tokens; ninguno fija colores directamente.
  */
 :root {
-  --color-bg: #faf9f7;
+  --color-bg: #f8f5f0;
   --color-surface: #ffffff;
-  --color-surface-muted: #f3f1ee;
-  --color-text: #1f1c1a;
-  --color-text-muted: #6b6560;
-  --color-border: #e6e2dd;
-  --color-accent: #3f3a36;
-  --color-accent-contrast: #ffffff;
-  --color-success: #2f7d4f;
-  --color-warning: #a76a10;
-  --color-danger: #b42318;
+  --color-surface-muted: #f1ebe3;
+  --color-text: #171717;
+  --color-text-muted: #6e655c;
+  --color-border: #e5dcd1;
+  --color-accent: #171717;
+  --color-accent-contrast: #f8f5f0;
+  --color-gold: #c6a77a; /* acento decorativo: detalles, iconos, marca */
+  --color-nude: #eaddd5; /* fondos suaves: "en servicio", selección */
+  --color-success: #2f6b46;
+  --color-warning: #8a5708;
+  --color-danger: #b3261e;
   --radius: 0.75rem;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-figtree), "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-prata), "Prata", ui-serif, Georgia, serif;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg: #161412;
-    --color-surface: #1f1c1a;
-    --color-surface-muted: #2a2623;
-    --color-text: #f3f0ec;
-    --color-text-muted: #a8a19a;
-    --color-border: #3a3531;
-    --color-accent: #e8e2db;
-    --color-accent-contrast: #1f1c1a;
+    --color-bg: #141210;
+    --color-surface: #1f1b17;
+    --color-surface-muted: #292420;
+    --color-text: #f3eee7;
+    --color-text-muted: #a69c8f;
+    --color-border: #363029;
+    --color-accent: #c6a77a; /* en oscuro, el oro es la acción principal */
+    --color-accent-contrast: #171717;
+    --color-gold: #c6a77a;
+    --color-nude: #3a322b;
+    --color-success: #5fa97c;
+    --color-warning: #d49a43;
+    --color-danger: #e2726a;
+    color-scheme: dark;
   }
 }
 
@@ -42,15 +54,53 @@
   --color-line: var(--color-border);
   --color-accent: var(--color-accent);
   --color-accent-fg: var(--color-accent-contrast);
+  --color-gold: var(--color-gold);
+  --color-nude: var(--color-nude);
   --color-success: var(--color-success);
   --color-warning: var(--color-warning);
   --color-danger: var(--color-danger);
   --radius-brand: var(--radius);
   --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
 }
 
 body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Títulos de página y de tarjeta en Prata (un solo peso: nunca forzar negritas). */
+h1,
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+
+/* Etiquetas en versalitas: KPI, encabezados de sección. */
+.eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+input,
+select,
+textarea {
+  color: var(--color-text);
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
 }

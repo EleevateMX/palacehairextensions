@@ -55,7 +55,7 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
 
       <section aria-labelledby="resumen" className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="resumen" className="text-lg font-semibold">Resumen del periodo</h2>
+          <h2 id="resumen" className="font-display text-xl">Resumen del periodo</h2>
           <ExportLink href={`/finanzas/exportar/resumen?${qs}`}>Exportar CSV</ExportLink>
         </div>
         {fin.error || !s ? (
@@ -67,7 +67,7 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
 
       <section aria-labelledby="gastos" className="mt-8 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="gastos" className="text-lg font-semibold">Gastos</h2>
+          <h2 id="gastos" className="font-display text-xl">Gastos</h2>
           <ExportLink href={`/finanzas/exportar/gastos?${qs}`}>Exportar CSV</ExportLink>
         </div>
         <Card title="Registrar gasto">
@@ -131,7 +131,7 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
 
       <section aria-labelledby="rentabilidad" className="mt-8 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="rentabilidad" className="text-lg font-semibold">Rentabilidad por servicio</h2>
+          <h2 id="rentabilidad" className="font-display text-xl">Rentabilidad por servicio</h2>
           <ExportLink href={`/finanzas/exportar/rentabilidad?${qs}`}>Exportar CSV</ExportLink>
         </div>
         <Card>

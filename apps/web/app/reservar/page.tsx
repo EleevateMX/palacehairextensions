@@ -25,7 +25,7 @@ function Steps({ current }: { current: number }) {
         <li
           key={s}
           aria-current={i === current ? "step" : undefined}
-          className={`flex-1 rounded-full px-3 py-1 text-center ${i === current ? "bg-accent text-accent-fg" : i < current ? "bg-surface-muted" : "border border-line text-muted"}`}
+          className={`flex-1 rounded-full px-3 py-1.5 text-center ${i === current ? "bg-accent text-accent-fg" : i < current ? "bg-nude" : "border border-line text-muted"}`}
         >
           {i + 1}. {s}
         </li>
@@ -48,7 +48,7 @@ export default async function BookingPortalPage({ searchParams }: { searchParams
     const consult = ctx.services.filter((s) => s.requiresConsultation);
     return (
       <>
-        <h1 className="mb-1 text-2xl font-semibold tracking-tight">Reserva tu cita</h1>
+        <h1 className="mb-1 text-3xl">Reserva tu cita</h1>
         <p className="mb-4 text-sm text-muted">{ctx.location.name}</p>
         <Steps current={0} />
         {sp.servicio ? <div className="mb-4"><ErrorNotice message="Ese servicio no se puede reservar en línea. Elige otro." /></div> : null}
@@ -60,7 +60,7 @@ export default async function BookingPortalPage({ searchParams }: { searchParams
             <li key={s.id}>
               <Link
                 href={`/reservar?servicio=${s.id}`}
-                className="block rounded-brand border border-line bg-surface p-4 hover:bg-surface-muted"
+                className="block rounded-2xl border border-line bg-surface p-5 transition hover:border-fg"
                 data-testid="servicio"
               >
                 <span className="flex items-start justify-between gap-3">
@@ -76,7 +76,7 @@ export default async function BookingPortalPage({ searchParams }: { searchParams
             </li>
           ))}
           {consult.map((s) => (
-            <li key={s.id} className="rounded-brand border border-dashed border-line p-4">
+            <li key={s.id} className="rounded-2xl border border-dashed border-line p-5">
               <span className="flex items-start justify-between gap-3">
                 <span className="font-medium">{s.name}</span>
                 <Badge tone="warning">Requiere valoración</Badge>
@@ -114,7 +114,7 @@ export default async function BookingPortalPage({ searchParams }: { searchParams
       <Link href="/reservar" className="text-sm underline">
         ← Cambiar servicio
       </Link>
-      <h1 className="mb-1 mt-2 text-2xl font-semibold tracking-tight">{service.name}</h1>
+      <h1 className="mb-1 mt-2 text-3xl">{service.name}</h1>
       <p className="mb-4 text-sm text-muted">
         {service.durationMin} min · {priceLabel(service)}
         {service.depositCents > 0 ? ` · anticipo ${mxn(service.depositCents)}` : ""}
@@ -150,7 +150,7 @@ export default async function BookingPortalPage({ searchParams }: { searchParams
 
       {result ? (
         <section className="mt-6" aria-labelledby="horarios">
-          <h2 id="horarios" className="mb-3 text-lg font-semibold">
+          <h2 id="horarios" className="mb-3 font-display text-xl">
             Horarios para el {longDate(date!)}
           </h2>
           {result.error ? <ErrorNotice message={result.error} /> : null}
@@ -168,7 +168,7 @@ export default async function BookingPortalPage({ searchParams }: { searchParams
                     key={slot.start}
                     href={`/reservar?${q}#datos`}
                     aria-current={active ? "true" : undefined}
-                    className={`rounded-brand border p-2 text-center text-sm ${active ? "border-accent bg-accent text-accent-fg" : "border-line bg-surface hover:bg-surface-muted"}`}
+                    className={`rounded-xl border px-2 py-3 text-center text-sm transition ${active ? "border-accent bg-accent text-accent-fg" : "border-line bg-surface hover:border-fg"}`}
                   >
                     <span className="block font-medium tabular-nums">{hour(slot.start)}</span>
                     {!staffChoice && a.staffId ? <span className="block truncate text-xs opacity-80">{names.get(a.staffId)}</span> : null}
@@ -188,7 +188,7 @@ export default async function BookingPortalPage({ searchParams }: { searchParams
 
       {chosenSlot ? (
         <section id="datos" className="mt-8" aria-labelledby="tus-datos">
-          <h2 id="tus-datos" className="mb-1 text-lg font-semibold">
+          <h2 id="tus-datos" className="mb-1 font-display text-xl">
             Tus datos
           </h2>
           <p className="mb-3 text-sm text-muted">

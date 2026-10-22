@@ -75,7 +75,9 @@ test("la propietaria da de alta a una persona que después puede entrar", async 
   await page.getByLabel("Contraseña").fill(pwd);
   await page.getByRole("button", { name: "Entrar" }).click();
   await expect(page).toHaveURL(/\/dashboard/);
-  await expect(page.getByText(`${name} · Estilista`)).toBeVisible();
+  const card = page.getByTestId("usuario-actual");
+  await expect(card).toContainText(name);
+  await expect(card).toContainText("Estilista");
   // Una estilista no ve Configuración.
   await page.goto("/configuracion");
   await expect(page.getByRole("alert").filter({ hasText: "No tienes permiso" })).toBeVisible();

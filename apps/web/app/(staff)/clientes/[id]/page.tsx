@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { Badge, EmptyState, ErrorNotice, PageHeader, Tabs } from "@/components/ui";
+import { Avatar, Badge, buttonClass, EmptyState, ErrorNotice, secondaryButtonClass, Tabs } from "@/components/ui";
 import { can, requireStaff } from "@/lib/staff";
 import { channelLabel, formatPhone, TABS, type TabKey } from "../_lib/crm";
 import { ConsentsTab } from "./_tabs/consents";
@@ -54,23 +54,54 @@ export default async function ClientRecordPage({
   const tab: TabKey = (visibleTabs.find((t) => t.key === sp.tab)?.key ?? "perfil") as TabKey;
   const href = (k: string) => `/clientes/${id}?tab=${k}`;
   const props = { supabase, staff, client: client as ClientRow };
+  const fullName = `${client.first_name} ${client.last_name ?? ""}`.trim();
+  const isFront = can(staff, "owner", "admin", "receptionist");
+  // wa.me solo abre el chat en el teléfono de quien da clic; no envía nada por su cuenta.
+  const waPhone = client.phone ? client.phone.replace(/\D/g, "") : null;
+  const since = new Intl.DateTimeFormat("es-MX", { timeZone: "America/Mexico_City", month: "short", year: "numeric" }).format(new Date(client.created_at));
 
   return (
     <>
-      <p className="mb-2 text-sm">
-        <Link href="/clientes" className="text-muted hover:underline">
-          ← Clientas
-        </Link>
-      </p>
-      <PageHeader
-        title={`${client.first_name} ${client.last_name ?? ""}`.trim()}
-        subtitle={[formatPhone(client.phone), client.email, client.acquisition_channel ? `Canal: ${channelLabel(client.acquisition_channel)}` : null]
-          .filter((x) => x && x !== "—")
-          .join(" · ")}
-        actions={client.is_anonymized ? <Badge tone="warning">Anonimizada</Badge> : null}
-      />
+      <Link href="/clientes" className="mb-3 inline-block text-sm text-muted hover:text-fg">
+        ← Clientas
+      </Link>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-4">
+          <Avatar name={client.first_name} size="lg" />
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-3xl leading-tight">{fullName}</h1>
+              {client.is_anonymized ? <Badge tone="warning">Anonimizada</Badge> : null}
+            </div>
+            <p className="mt-1 text-sm text-muted">
+              {[
+                formatPhone(client.phone),
+                client.email,
+                client.acquisition_channel ? `Canal: ${channelLabel(client.acquisition_channel)}` : null,
+                `clienta desde ${since}`,
+              ]
+                .filter((x) => x && x !== "—")
+                .join(" · ")}
+            </p>
+          </div>
+        </div>
+        {!client.is_anonymized ? (
+          <div className="flex flex-wrap gap-2">
+            {waPhone ? (
+              <a className={secondaryButtonClass} href={`https://wa.me/${waPhone}`} target="_blank" rel="noopener noreferrer">
+                WhatsApp
+              </a>
+            ) : null}
+            {isFront ? (
+              <Link className={buttonClass} href={`/agenda/nueva?client=${client.id}`}>
+                + Nueva cita
+              </Link>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
       {sp.creada ? (
-        <p role="status" className="mb-4 rounded-brand border border-success/40 bg-success/10 p-2 text-sm text-success">
+        <p role="status" className="mb-4 rounded-xl border border-success/30 bg-success/8 p-3 text-sm text-success">
           Clienta registrada con sus consentimientos.
         </p>
       ) : null}

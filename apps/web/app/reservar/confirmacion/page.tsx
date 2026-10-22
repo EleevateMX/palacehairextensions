@@ -35,7 +35,7 @@ export default async function ConfirmationPage({ searchParams }: { searchParams:
 
   return (
     <>
-      <h1 className="mb-4 text-2xl font-semibold tracking-tight">
+      <h1 className="mb-4 text-3xl">
         {a.booking_status === "confirmed" ? "¡Tu cita está confirmada!" : isHold ? "Recibimos tu solicitud" : "Estado de tu reserva"}
       </h1>
 

@@ -22,7 +22,7 @@ export function InventoryTabs({ staff, current }: { staff: CurrentStaff; current
 export function Forbidden({ what = "esta sección del inventario" }: { what?: string }) {
   return (
     <Card>
-      <h1 className="mb-2 text-lg font-semibold">Sin permiso</h1>
+      <h1 className="mb-2 font-display text-xl">Sin permiso</h1>
       <ErrorNotice message={`Tu rol no tiene permiso para ${what}. Solo Inventarios, Administración y la Propietaria.`} />
       <p className="mt-3 text-sm">
         <Link href="/inventario" className="underline">

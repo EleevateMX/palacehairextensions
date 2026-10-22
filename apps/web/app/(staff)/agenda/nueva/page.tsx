@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { KeepValuesForm } from "../_components/keep-values-form";
-import { buttonClass, Card, EmptyState, ErrorNotice, Field, inputClass, PageHeader } from "@/components/ui";
+import { buttonClass, Card, EmptyState, ErrorNotice, Field, inputClass, PageHeader, slotButtonClass, StepIndicator } from "@/components/ui";
 import { loadSlots } from "@/lib/availability";
 import { hour, isIsoDate, longDate, mxn, todayLocal } from "@/lib/format";
 import { currentLocationId } from "@/lib/location";
@@ -102,13 +102,10 @@ export default async function NewAppointmentPage({ searchParams }: { searchParam
   return (
     <>
       <PageHeader
+        back={{ href: `/agenda?date=${date}`, label: "Agenda" }}
         title="Nueva cita"
         subtitle={longDate(date)}
-        actions={
-          <Link className="rounded-brand border border-line px-3 py-2 text-sm" href={`/agenda?date=${date}`}>
-            ← Agenda
-          </Link>
-        }
+        actions={<StepIndicator steps={["Clienta y servicio", "Horario"]} current={result?.slots.length ? 2 : 1} />}
       />
       {sp.error ? (
         <div className="mb-4">
@@ -182,7 +179,7 @@ export default async function NewAppointmentPage({ searchParams }: { searchParam
                   };
                   const options = hairVariants.filter(techniqueOk);
                   return (
-                    <div key={`${s.id}-${i}`} className="grid gap-2 rounded-brand border border-line p-3 sm:grid-cols-[1fr_8rem] md:col-span-2">
+                    <div key={`${s.id}-${i}`} className="grid gap-2 rounded-xl border border-line p-3.5 sm:grid-cols-[1fr_8rem] md:col-span-2">
                       <Field label={`Tono de cabello · ${s.name}`} hint="Se reserva del inventario al crear la cita.">
                         <select name={`mat_${i}_variant`} defaultValue="" className={inputClass}>
                           <option value="">Sin reservar tono (definir en valoración)</option>
@@ -227,7 +224,7 @@ export default async function NewAppointmentPage({ searchParams }: { searchParam
             <EmptyState title="Sin horarios disponibles" description="Prueba otra fecha, otra especialista o menos servicios." />
           ) : (
             <div>
-              <p className="mb-2 text-sm text-muted">Elige un horario para crear la cita:</p>
+              <p className="eyebrow mb-3">Elige un horario para crear la cita</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-6">
                 {result.slots.map((slot) => {
                   const items = slot.assignments.map((a) => ({
@@ -243,10 +240,10 @@ export default async function NewAppointmentPage({ searchParams }: { searchParam
                       type="submit"
                       name="slot"
                       value={JSON.stringify(items)}
-                      className="w-full rounded-brand border border-line bg-surface p-2 text-left text-sm hover:bg-surface-muted"
+                      className={`group ${slotButtonClass}`}
                     >
                       <span className="block font-medium tabular-nums">{hour(slot.start)}</span>
-                      <span className="block truncate text-xs text-muted">{staffNames}</span>
+                      <span className="block truncate text-xs text-muted group-hover:text-accent-fg/80">{staffNames}</span>
                     </button>
                   );
                 })}

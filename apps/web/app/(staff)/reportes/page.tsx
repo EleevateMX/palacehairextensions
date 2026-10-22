@@ -90,7 +90,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
       <section className="mt-6 space-y-4" aria-labelledby="ventas">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="ventas" className="text-lg font-semibold">Ventas por día y método</h2>
+          <h2 id="ventas" className="font-display text-xl">Ventas por día y método</h2>
           <ExportLink href={`/reportes/exportar/ventas?${qs}`}>Exportar CSV</ExportLink>
         </div>
         {sales.error ? <ErrorNotice message="No se pudieron cargar las ventas." /> : null}
@@ -137,7 +137,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
       <section className="mt-8 space-y-4" aria-labelledby="mas-vendidos">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="mas-vendidos" className="text-lg font-semibold">Más vendidos</h2>
+          <h2 id="mas-vendidos" className="font-display text-xl">Más vendidos</h2>
           <ExportLink href={`/reportes/exportar/articulos?${qs}`}>Exportar CSV</ExportLink>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
@@ -148,7 +148,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
       <section className="mt-8 space-y-4" aria-labelledby="comisiones">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="comisiones" className="text-lg font-semibold">Comisiones por estilista</h2>
+          <h2 id="comisiones" className="font-display text-xl">Comisiones por estilista</h2>
           <ExportLink href={`/reportes/exportar/comisiones?${qs}`}>Exportar CSV</ExportLink>
         </div>
         <CommissionsSection report={commissions} period={period} />
@@ -156,7 +156,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
       <section className="mt-8 space-y-4" aria-labelledby="productividad">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="productividad" className="text-lg font-semibold">Productividad por estilista</h2>
+          <h2 id="productividad" className="font-display text-xl">Productividad por estilista</h2>
           <ExportLink href={`/reportes/exportar/productividad?${qs}`}>Exportar CSV</ExportLink>
         </div>
         <Card>
@@ -190,7 +190,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
       <section className="mt-8 space-y-4" aria-labelledby="citas">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="citas" className="text-lg font-semibold">Citas y clientas</h2>
+          <h2 id="citas" className="font-display text-xl">Citas y clientas</h2>
           <ExportLink href={`/reportes/exportar/citas?${qs}`}>Exportar CSV</ExportLink>
         </div>
         {bookings.error ? <ErrorNotice message="No se pudieron cargar los indicadores de citas." /> : null}

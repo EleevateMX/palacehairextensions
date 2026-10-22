@@ -31,6 +31,9 @@ do \$\$ begin
 end \$\$;
 grant anon, authenticated, service_role to authenticator;
 create schema if not exists auth authorization supabase_auth_admin;
+-- Supabase siempre trae graphql_public y la API lo expone (migración 20261025000200).
+create schema if not exists graphql_public;
+grant usage on schema graphql_public to anon, authenticated, service_role;
 grant create on database $DB to supabase_auth_admin;
 SQL
 

@@ -1,5 +1,5 @@
 import { SubmitButton } from "@/components/forms";
-import { Card, Field, inputClass } from "@/components/ui";
+import { Card, Field, inputClass, ToneDot } from "@/components/ui";
 import { can } from "@/lib/staff";
 import { loadQuoteConfig } from "../../../cotizador/_lib/quote-config";
 import { CHANNELS, channelLabel, dateMx, formatPhone } from "../../_lib/crm";
@@ -38,7 +38,10 @@ export async function ProfileTab({ supabase, staff, client }: TabProps) {
           {rows.map(([k, v]) => (
             <div key={k}>
               <dt className="text-xs text-muted">{k}</dt>
-              <dd className="whitespace-pre-wrap">{v}</dd>
+              <dd className="flex items-center gap-2 whitespace-pre-wrap">
+                {k === "Tono" && client.hair_tone ? <ToneDot tone={client.hair_tone} /> : null}
+                {v}
+              </dd>
             </div>
           ))}
         </dl>

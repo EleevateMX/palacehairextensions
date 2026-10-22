@@ -113,7 +113,7 @@ export default async function SalePage({
         <header className="mb-4 border-b border-line pb-4 text-center">
           <p className="text-lg font-semibold">{settingsRes.data?.display_name ?? "Palace Hair Extensions"}</p>
           {location ? <p className="text-sm text-muted">{location.name}</p> : null}
-          <h1 className="mt-2 text-2xl font-semibold tabular-nums">Folio {sale.folio}</h1>
+          <h1 className="mt-2 text-3xl tabular-nums">Folio {sale.folio}</h1>
           <p className="text-sm text-muted">{dateTime(sale.created_at)}</p>
           <div className="mt-2 flex justify-center">
             <Badge tone={statusTone(sale.status)}>{STATUS_LABEL[sale.status] ?? sale.status}</Badge>

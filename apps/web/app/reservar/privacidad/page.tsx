@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Aviso de privacidad" };
 export default function PrivacyPage() {
   return (
     <article className="space-y-4 text-sm leading-relaxed">
-      <h1 className="text-2xl font-semibold tracking-tight">Aviso de privacidad (resumen)</h1>
+      <h1 className="text-3xl">Aviso de privacidad (resumen)</h1>
       <p className="rounded-brand border border-warning/40 bg-warning/10 p-3">
         Texto provisional pendiente de revisión legal. Solicita el aviso de privacidad integral en el salón.
       </p>

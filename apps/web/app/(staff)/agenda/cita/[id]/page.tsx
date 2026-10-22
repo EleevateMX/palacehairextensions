@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { utcToLocalDate } from "@palace/domain";
 import { ActionForm, SubmitButton } from "@/components/forms";
 import { KeepValuesForm } from "../../_components/keep-values-form";
-import { Card, EmptyState, ErrorNotice, Field, inputClass, PageHeader, secondaryButtonClass } from "@/components/ui";
+import { buttonClass, Card, EmptyState, ErrorNotice, Field, inputClass, PageHeader, secondaryButtonClass, ToneDot } from "@/components/ui";
 import { loadSlots } from "@/lib/availability";
 import { hour, isIsoDate, longDate, mxn, TZ } from "@/lib/format";
 import { can, requireStaff } from "@/lib/staff";
@@ -134,24 +134,27 @@ export default async function AppointmentDetailPage({ params, searchParams }: { 
   return (
     <>
       <PageHeader
-        title={clientName(client)}
-        subtitle={`${longDate(localDate)} · ${hour(a.starts_at)}–${hour(a.ends_at)}`}
+        back={{ href: `/agenda?date=${localDate}`, label: "Agenda" }}
+        title={`${clientName(client)} · ${hour(a.starts_at)}`}
+        subtitle={[
+          longDate(localDate),
+          lines.map((l) => one(l.services)?.name).filter(Boolean).join(", "),
+          [...new Set(lines.map((l) => (l.staff_id ? names.get(l.staff_id) : null)).filter(Boolean))].join(", "),
+          durationLabel(Date.parse(a.ends_at) - Date.parse(a.starts_at)),
+        ]
+          .filter(Boolean)
+          .join(" · ")}
         actions={
-          <div className="flex flex-wrap gap-2">
-            <Link className="rounded-brand border border-line px-3 py-2 text-sm" href={`/agenda?date=${localDate}`}>
-              ← Agenda
+          seesMoney && confirmed && att !== "no_show" ? (
+            <Link className={att === "completed" ? buttonClass : secondaryButtonClass} href={`/pos?appointment=${a.id}`}>
+              Cobrar en POS
             </Link>
-            {seesMoney && confirmed && att !== "no_show" ? (
-              <Link className={secondaryButtonClass} href={`/pos?appointment=${a.id}`}>
-                Cobrar
-              </Link>
-            ) : null}
-          </div>
+          ) : null
         }
       />
 
       {sp.cancelada ? (
-        <p role="status" className="mb-4 rounded-brand border border-line bg-surface-muted p-3 text-sm">
+        <p role="status" className="mb-4 rounded-xl border border-line bg-surface p-3 text-sm">
           {sp.cancelada === "ya"
             ? "La cita ya estaba cancelada."
             : sp.cancelada === "tardia"
@@ -160,12 +163,12 @@ export default async function AppointmentDetailPage({ params, searchParams }: { 
         </p>
       ) : null}
       {sp.reprogramada ? (
-        <p role="status" className="mb-4 rounded-brand border border-success/40 bg-success/10 p-3 text-sm text-success">
+        <p role="status" className="mb-4 rounded-xl border border-success/30 bg-success/8 p-3 text-sm text-success">
           Cita reprogramada. Materiales y anticipos se movieron a este nuevo horario.
         </p>
       ) : null}
       {successor ? (
-        <p className="mb-4 rounded-brand border border-line bg-surface-muted p-3 text-sm">
+        <p className="mb-4 rounded-xl border border-line bg-surface p-3 text-sm">
           Esta cita fue reprogramada.{" "}
           <Link className="font-medium underline" href={`/agenda/cita/${successor.id}`}>
             Ver la nueva cita
@@ -173,12 +176,12 @@ export default async function AppointmentDetailPage({ params, searchParams }: { 
         </p>
       ) : null}
       {a.booking_status === "hold" && a.hold_expires_at ? (
-        <p className="mb-4 rounded-brand border border-warning/40 bg-warning/10 p-3 text-sm text-warning">
+        <p className="mb-4 rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
           Apartado provisional: vence a las {hour(a.hold_expires_at)} si no se registra el anticipo.
         </p>
       ) : null}
 
-      <div className="mb-4 flex flex-wrap gap-2" aria-label="Estados de la cita">
+      <div className="mb-5 flex flex-wrap gap-2" aria-label="Estados de la cita">
         <StatusBadge kind="booking" value={a.booking_status} />
         <StatusBadge kind="attendance" value={a.attendance_status} />
         <StatusBadge kind="payment" value={a.payment_status} />
@@ -233,8 +236,9 @@ export default async function AppointmentDetailPage({ params, searchParams }: { 
                 {reservations.map((r) => {
                   const v = one(r.product_variants);
                   return (
-                    <li key={r.id} className="flex flex-wrap justify-between gap-2 py-2">
-                      <span>
+                    <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                      <span className="flex items-center gap-2.5">
+                        <ToneDot tone={v?.tone} />
                         {v?.name ?? "Variante"} <span className="text-xs text-muted">{v?.sku}</span>
                       </span>
                       <span className="tabular-nums">
@@ -250,8 +254,10 @@ export default async function AppointmentDetailPage({ params, searchParams }: { 
           {canAttend && confirmed && !finished ? (
             <Card title="Asistencia">
               <div className="flex flex-wrap gap-2">
-                {att === "scheduled" ? <AttendanceButton id={a.id} status="arrived" label="Llegó" /> : null}
-                {att === "scheduled" || att === "arrived" ? <AttendanceButton id={a.id} status="in_service" label="En servicio" /> : null}
+                {att === "scheduled" ? <AttendanceButton id={a.id} status="arrived" label="Llegó" variant="primary" /> : null}
+                {att === "scheduled" || att === "arrived" ? (
+                  <AttendanceButton id={a.id} status="in_service" label="En servicio" variant={att === "arrived" ? "primary" : "secondary"} />
+                ) : null}
                 {att === "scheduled" || att === "arrived" ? (
                   <AttendanceButton id={a.id} status="no_show" label="No asistió" variant="danger" confirm="¿Marcar que la clienta no asistió? Se libera el resto del horario." />
                 ) : null}
@@ -334,7 +340,7 @@ export default async function AppointmentDetailPage({ params, searchParams }: { 
                               starts_at: new Date(x.start).toISOString(),
                             })),
                           )}
-                          className="rounded-brand border border-line bg-surface p-2 text-left text-sm hover:bg-surface-muted"
+                          className="rounded-xl border border-line bg-surface p-2.5 text-left text-sm transition hover:border-fg"
                         >
                           <span className="block font-medium tabular-nums">Mover a {hour(slot.start)}</span>
                           <span className="block truncate text-xs text-muted">
@@ -442,6 +448,13 @@ export default async function AppointmentDetailPage({ params, searchParams }: { 
       </div>
     </>
   );
+}
+
+function durationLabel(ms: number): string {
+  const min = Math.round(ms / 60000);
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return h ? `${h} h${m ? ` ${m} min` : ""}` : `${m} min`;
 }
 
 function AttendanceButton({

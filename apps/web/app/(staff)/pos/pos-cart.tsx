@@ -91,13 +91,13 @@ const emptyPayment = (method: Method = "cash", tipStaffId = ""): Payment => ({
   received: "",
 });
 
-const ctl = "min-h-11 w-full rounded-brand border border-line bg-surface px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40";
-const smallBtn = "inline-flex min-h-11 items-center justify-center rounded-brand border border-line bg-surface px-3 text-sm hover:bg-surface-muted";
+const ctl = "min-h-11 w-full rounded-xl border border-line bg-surface px-3 text-sm outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/25";
+const smallBtn = "inline-flex min-h-11 items-center justify-center rounded-xl border border-line bg-surface px-3 text-sm transition hover:border-fg disabled:opacity-50";
 
 function Lbl({ text, children, className = "" }: { text: string; children: ReactNode; className?: string }) {
   return (
     <div className={`space-y-1 ${className}`}>
-      <span className="block text-xs text-muted">{text}</span>
+      <span className="block text-xs font-medium text-muted">{text}</span>
       {children}
     </div>
   );
@@ -411,8 +411,8 @@ export function PosCart({
     <div className="grid gap-4 lg:grid-cols-[1fr_400px]">
       {/* Columna izquierda: agregar y carrito */}
       <div className="space-y-4">
-        <section className="rounded-brand border border-line bg-surface p-4">
-          <h2 className="mb-3 text-sm font-medium text-muted">Agregar al carrito</h2>
+        <section className="rounded-2xl border border-line bg-surface p-5">
+          <h2 className="eyebrow mb-3">Agregar al carrito</h2>
           <div className="grid gap-3 md:grid-cols-2">
             <Lbl text="Código de barras o SKU (Enter para agregar)">
               <input
@@ -501,9 +501,9 @@ export function PosCart({
           ) : null}
         </section>
 
-        <section className="rounded-brand border border-line bg-surface p-4">
+        <section className="rounded-2xl border border-line bg-surface p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-medium text-muted">
+            <h2 className="eyebrow">
               Carrito {appointment ? `· ${appointment.label}` : ""}
             </h2>
             {lines.length > 0 ? (
@@ -523,7 +523,7 @@ export function PosCart({
                 const qty = Number(l.quantity) || 0;
                 const disc = parsePesos(l.discount) ?? 0;
                 return (
-                  <li key={l.key} className="rounded-brand border border-line p-3" data-testid="cart-line">
+                  <li key={l.key} className="rounded-xl border border-line p-3.5" data-testid="cart-line">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="font-medium">{l.description}</p>
@@ -614,8 +614,8 @@ export function PosCart({
 
       {/* Columna derecha: clienta, cupón, pagos y totales */}
       <div className="space-y-4">
-        <section className="rounded-brand border border-line bg-surface p-4">
-          <h2 className="mb-3 text-sm font-medium text-muted">Clienta (opcional)</h2>
+        <section className="rounded-2xl border border-line bg-surface p-5">
+          <h2 className="eyebrow mb-3">Clienta (opcional)</h2>
           {client ? (
             <div className="flex items-center justify-between gap-2">
               <div>
@@ -659,8 +659,8 @@ export function PosCart({
           )}
         </section>
 
-        <section className="rounded-brand border border-line bg-surface p-4">
-          <h2 className="mb-3 text-sm font-medium text-muted">Cupón</h2>
+        <section className="rounded-2xl border border-line bg-surface p-5">
+          <h2 className="eyebrow mb-3">Cupón</h2>
           {coupon ? (
             <div className="flex items-center justify-between gap-2 text-sm">
               <p role="status">
@@ -685,9 +685,9 @@ export function PosCart({
           ) : null}
         </section>
 
-        <section className="rounded-brand border border-line bg-surface p-4">
+        <section className="rounded-2xl border border-line bg-surface p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-medium text-muted">Pagos</h2>
+            <h2 className="eyebrow">Pagos</h2>
             <button type="button" className={smallBtn} onClick={() => setPayments((ps) => [...ps, emptyPayment("card", ps[0]?.tipStaffId ?? "")])}>
               Agregar pago
             </button>
@@ -699,7 +699,7 @@ export function PosCart({
               const tip = parsePesos(p.tip) ?? 0;
               const received = parsePesos(p.received) ?? 0;
               return (
-                <li key={p.key} className="rounded-brand border border-line p-3" data-testid="payment-row">
+                <li key={p.key} className="rounded-xl border border-line p-3.5" data-testid="payment-row">
                   <div className="flex items-center justify-between gap-2">
                     {p.method === "deposit" ? (
                       <p className="text-sm font-medium">{p.depositLabel}</p>
@@ -840,7 +840,7 @@ export function PosCart({
           </ul>
         </section>
 
-        <section className="rounded-brand border border-line bg-surface p-4" aria-label="Totales">
+        <section className="rounded-2xl border border-line bg-surface p-5" aria-label="Totales">
           <dl className="space-y-1 text-sm">
             <Row label="Subtotal" value={mxn(totals.subtotal)} />
             {totals.lineDisc > 0 ? <Row label="Descuentos" value={`−${mxn(totals.lineDisc)}`} /> : null}
@@ -869,7 +869,7 @@ export function PosCart({
             type="button"
             onClick={submit}
             disabled={pending}
-            className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-brand bg-accent px-4 text-base font-medium text-accent-fg hover:opacity-90 disabled:opacity-50"
+            className="mt-4 inline-flex min-h-13 w-full items-center justify-center rounded-xl bg-accent px-4 text-base font-medium text-accent-fg transition hover:opacity-90 disabled:opacity-50"
           >
             {pending ? "Cobrando…" : "Cobrar"}
           </button>
@@ -881,7 +881,7 @@ export function PosCart({
 
 function Row({ label, value, strong, testId, tone }: { label: string; value: string; strong?: boolean; testId?: string; tone?: "danger" }) {
   return (
-    <div className={`flex justify-between ${strong ? "text-base font-semibold" : ""} ${tone === "danger" ? "text-danger" : ""}`}>
+    <div className={`flex items-baseline justify-between ${strong ? "mt-2 border-t border-line pt-3 text-lg font-semibold" : ""} ${tone === "danger" ? "text-danger" : ""}`}>
       <dt>{label}</dt>
       <dd className="tabular-nums" data-testid={testId}>
         {value}
