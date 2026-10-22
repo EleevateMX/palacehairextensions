@@ -11,11 +11,14 @@ export const metadata: Metadata = {
   description: brand.tagline,
   robots: { index: false, follow: false },
   icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: brand.shortName, statusBarStyle: "default" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f8f5f0" },
     { media: "(prefers-color-scheme: dark)", color: "#141210" },

@@ -45,12 +45,12 @@ export function BottomTabs({ primary, rest, footer }: { primary: NavItem[]; rest
   return (
     <>
       {open ? (
-        <div className="fixed inset-0 z-40 bg-black/30 md:hidden" onClick={() => setOpen(false)} aria-hidden />
+        <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setOpen(false)} aria-hidden />
       ) : null}
       {open ? (
-        <div id="menu-mas" className="fixed inset-x-0 bottom-[68px] z-50 rounded-t-3xl border-t border-line bg-surface p-4 pb-5 shadow-2xl md:hidden">
+        <div id="menu-mas" className="fixed inset-x-0 bottom-[calc(68px+env(safe-area-inset-bottom))] z-50 mx-auto max-w-2xl rounded-t-3xl border-t border-line bg-surface p-4 pb-5 shadow-2xl lg:hidden">
           <p className="eyebrow mb-2 px-2">Más módulos</p>
-          <ul className="grid grid-cols-2 gap-1">
+          <ul className="grid grid-cols-2 gap-1 sm:grid-cols-3">
             {rest.map((n) => (
               <li key={n.href}>
                 <Link
@@ -71,7 +71,7 @@ export function BottomTabs({ primary, rest, footer }: { primary: NavItem[]; rest
       ) : null}
       <nav
         aria-label="Navegación principal"
-        className="fixed inset-x-0 bottom-0 z-50 grid h-[68px] border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 grid border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden [&>*]:h-[68px]"
         style={{ gridTemplateColumns: `repeat(${primary.length + 1}, minmax(0, 1fr))` }}
       >
         {primary.map((n) => {

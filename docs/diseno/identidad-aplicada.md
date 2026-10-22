@@ -42,3 +42,26 @@ nude o negro = en servicio.
 Dashboard, Agenda (rejilla por especialista en escritorio, lista con tira de días en teléfono),
 Nueva cita, Detalle de cita, POS, Expediente y Reservar. El resto hereda la identidad por los
 componentes base.
+
+## Tamaños de pantalla
+
+| Pantalla | Ancho | Navegación |
+|---|---|---|
+| Teléfono | < 768 px | Barra superior + barra inferior (Inicio · Agenda · POS · Clientas · Más) |
+| Tableta / iPad vertical | 768–1023 px | Igual que teléfono, con más margen |
+| iPad horizontal, laptop | ≥ 1024 px | Barra lateral de 14.5 rem |
+| TV y monitores grandes | ≥ 1920 / 2560 / 3200 px | Todo escala (letra base 112.5 % / 131.25 % / 162.5 %) |
+
+Reglas que evitan el desbordamiento horizontal (en `globals.css`):
+- los hijos de cualquier `.grid` pueden encogerse (`min-width: 0`);
+- las zonas `overflow-x-auto` contienen a sus elementos posicionados (p. ej. `sr-only` en tablas);
+- la columna principal es `minmax(0, 1fr)`.
+
+`e2e/tests/responsivo.spec.ts` recorre ~40 pantallas en 9 tamaños (360 px a TV 4K) y falla si algo
+se sale de la pantalla o si desaparece la navegación. Se puede instalar como app (manifest + íconos).
+
+## Ubicación y redes
+
+Configuración → «Ubicación y redes»: nombre de la sucursal, dirección, teléfono, enlace de Google
+Maps («Cómo llegar»), texto para el mapa y página de Facebook. El portal de reservas los muestra en
+la tarjeta «Visítanos» (mapa embebido de Google, sin llave de API, carga diferida).

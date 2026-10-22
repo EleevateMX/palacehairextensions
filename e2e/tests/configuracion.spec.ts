@@ -219,3 +219,33 @@ test("cotizador: muestra el aviso de ejemplo y guarda la variación del rango", 
     .poll(async () => (await db.query(`select quote_config from business_settings where id = 1`)).rows[0].quote_config.rangeBps)
     .toBe(1500);
 });
+
+test("la propietaria guarda ubicación y Facebook, y el portal muestra Cómo llegar", async ({ page }) => {
+  const { rows: before } = await db.query(`select id, name, address, phone, maps_url, map_query from locations where is_active order by name limit 1`);
+  const { rows: fbBefore } = await db.query(`select facebook_url from business_settings where id = 1`);
+  try {
+    await login(page, USERS.owner);
+    await page.goto("/configuracion");
+    await page.getByLabel("Página de Facebook").fill("https://evil.example/fb");
+    await page.getByRole("button", { name: "Guardar ubicación" }).click();
+    await expect(page.getByRole("alert").filter({ hasText: "Página de Facebook" })).toBeVisible();
+
+    const maps = `https://maps.app.goo.gl/e2e${stamp()}`;
+    await page.getByRole("textbox", { name: /^Dirección/ }).fill("Calle 1 #2, Mérida");
+    await page.getByLabel("Enlace de Google Maps").fill(maps);
+    await page.getByLabel("Texto para el mapa").fill("Salón E2E, Mérida");
+    await page.getByLabel("Página de Facebook").fill("https://www.facebook.com/salon.e2e/");
+    await page.getByRole("button", { name: "Guardar ubicación" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Ubicación y redes guardadas" })).toBeVisible();
+
+    await page.goto("/reservar");
+    await expect(page.getByRole("link", { name: "Cómo llegar" })).toHaveAttribute("href", maps);
+    await expect(page.getByRole("link", { name: "Facebook" })).toHaveAttribute("href", "https://www.facebook.com/salon.e2e/");
+    await expect(page.getByText("Calle 1 #2, Mérida")).toBeVisible();
+    await expect(page.locator('iframe[title^="Mapa de ubicación"]')).toHaveAttribute("src", /output=embed/);
+  } finally {
+    const b = before[0];
+    await db.query(`update locations set name = $2, address = $3, phone = $4, maps_url = $5, map_query = $6 where id = $1`, [b.id, b.name, b.address, b.phone, b.maps_url, b.map_query]);
+    await db.query(`update business_settings set facebook_url = $1 where id = 1`, [fbBefore[0].facebook_url]);
+  }
+});

@@ -86,6 +86,38 @@ h1,
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-text-muted);
+  overflow-wrap: anywhere; /* etiquetas largas en tarjetas angostas no empujan la página */
+}
+
+/*
+ * Responsivo en cualquier pantalla:
+ * - los hijos de una rejilla pueden encogerse (si no, un texto largo o una tabla ensancha la página);
+ * - en pantallas grandes y TV todo escala con el tamaño de letra base (la app usa rem).
+ */
+@layer base {
+  .grid > * {
+    min-width: 0;
+  }
+  /* Lo que se posiciona dentro de una zona con scroll (p. ej. etiquetas sr-only en tablas) no la desborda. */
+  .overflow-x-auto,
+  .overflow-auto {
+    position: relative;
+  }
+}
+@media (min-width: 1920px) {
+  html {
+    font-size: 112.5%;
+  }
+}
+@media (min-width: 2560px) {
+  html {
+    font-size: 131.25%;
+  }
+}
+@media (min-width: 3200px) {
+  html {
+    font-size: 162.5%;
+  }
 }
 
 :focus-visible {

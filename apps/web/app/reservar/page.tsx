@@ -5,6 +5,7 @@ import { hour, isIsoDate, longDate, mxn } from "@/lib/format";
 import { bookableDateRange, type PortalService, portalContext, portalSlots, serviceStaff } from "@/lib/portal";
 import { hasAdminKey } from "@/lib/supabase/admin";
 import { BookingForm } from "./booking-form";
+import { VisitCard } from "./visit-card";
 
 export const metadata: Metadata = { title: "Reserva tu cita" };
 export const dynamic = "force-dynamic";
@@ -35,10 +36,18 @@ function Steps({ current }: { current: number }) {
 }
 
 export default async function BookingPortalPage({ searchParams }: { searchParams: Promise<SP> }) {
-  if (!hasAdminKey()) return <ErrorNotice message="Las reservas en línea no están disponibles por el momento. Llámanos o escríbenos por WhatsApp." />;
+  if (!hasAdminKey()) return (
+      <div className="mx-auto max-w-2xl">
+        <ErrorNotice message="Las reservas en línea no están disponibles por el momento. Llámanos o escríbenos por WhatsApp." />
+      </div>
+    );
   const sp = await searchParams;
   const ctx = await portalContext();
-  if (ctx.error || !ctx.location) return <ErrorNotice message="No pudimos cargar el catálogo. Intenta de nuevo en unos minutos." />;
+  if (ctx.error || !ctx.location) return (
+      <div className="mx-auto max-w-2xl">
+        <ErrorNotice message="No pudimos cargar el catálogo. Intenta de nuevo en unos minutos." />
+      </div>
+    );
 
   const service = UUID.test(sp.servicio ?? "") ? ctx.services.find((s) => s.id === sp.servicio && s.onlineBookable && !s.requiresConsultation) : undefined;
 
@@ -47,7 +56,8 @@ export default async function BookingPortalPage({ searchParams }: { searchParams
     const bookable = ctx.services.filter((s) => s.onlineBookable && !s.requiresConsultation);
     const consult = ctx.services.filter((s) => s.requiresConsultation);
     return (
-      <>
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-10">
+       <div>
         <h1 className="mb-1 text-3xl">Reserva tu cita</h1>
         <p className="mb-4 text-sm text-muted">{ctx.location.name}</p>
         <Steps current={0} />
@@ -94,7 +104,11 @@ export default async function BookingPortalPage({ searchParams }: { searchParams
             </li>
           ))}
         </ul>
-      </>
+       </div>
+        <aside className="mt-8 lg:sticky lg:top-6 lg:mt-0">
+          <VisitCard location={ctx.location} facebookUrl={ctx.facebookUrl} displayName={ctx.displayName} />
+        </aside>
+      </div>
     );
   }
 
@@ -110,7 +124,7 @@ export default async function BookingPortalPage({ searchParams }: { searchParams
   const base = new URLSearchParams({ servicio: service.id, ...(staffChoice ? { especialista: staffChoice } : {}), ...(date ? { fecha: date } : {}) });
 
   return (
-    <>
+    <div className="mx-auto max-w-2xl">
       <Link href="/reservar" className="text-sm underline">
         ← Cambiar servicio
       </Link>
@@ -217,6 +231,6 @@ export default async function BookingPortalPage({ searchParams }: { searchParams
           </Card>
         </section>
       ) : null}
-    </>
+    </div>
   );
 }

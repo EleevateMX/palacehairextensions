@@ -25,9 +25,9 @@ export default async function StaffLayout({ children }: { children: React.ReactN
   );
 
   return (
-    <div className="min-h-dvh md:grid md:grid-cols-[232px_1fr]">
+    <div className="min-h-dvh lg:grid lg:grid-cols-[14.5rem_minmax(0,1fr)]">
       {/* Escritorio: barra lateral */}
-      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-line bg-surface px-4 py-6 md:flex">
+      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-line bg-surface px-4 py-6 lg:flex">
         <Link href="/dashboard" className="mb-8 block px-2">
           <Wordmark />
         </Link>
@@ -47,7 +47,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
       </aside>
 
       {/* Teléfono: barra superior */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-bg/90 px-4 py-3 backdrop-blur md:hidden">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-bg/90 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur md:px-8 lg:hidden">
         <Link href="/dashboard">
           <Wordmark size="sm" />
         </Link>
@@ -61,7 +61,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
         </div>
       </header>
 
-      <main className="mx-auto w-full min-w-0 max-w-6xl px-4 pb-28 pt-5 md:px-8 md:pb-10 md:pt-8">{children}</main>
+      <main className="mx-auto w-full min-w-0 max-w-6xl px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-5 md:px-8 md:pt-7 lg:pb-10 lg:pt-8">{children}</main>
 
       <BottomTabs primary={primary} rest={rest} footer={logoutButton} />
     </div>

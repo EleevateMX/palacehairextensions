@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge, Card, ErrorNotice, secondaryButtonClass } from "@/components/ui";
+import { portalVisitInfo } from "@/lib/portal";
+import { VisitCard } from "../visit-card";
 import { hour, mxn, TZ } from "@/lib/format";
 import { createAdminClient, hasAdminKey } from "@/lib/supabase/admin";
 
@@ -19,6 +21,7 @@ const fullDate = (iso: string) =>
 export default async function ConfirmationPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   const { id } = await searchParams;
   if (!id || !UUID.test(id) || !hasAdminKey()) return <NotFound />;
+  const visitPromise = portalVisitInfo();
   const { data: a } = await createAdminClient()
     .from("appointments")
     .select("id, booking_status, starts_at, hold_expires_at, deposit_required_cents, payment_status, appointment_services(position, services(name), staff_members(display_name)), locations(name, address, phone)")
@@ -26,6 +29,7 @@ export default async function ConfirmationPage({ searchParams }: { searchParams:
     .eq("source", "online")
     .maybeSingle();
   if (!a) return <NotFound />;
+  const visit = await visitPromise;
 
   type Line = { position: number; services: { name: string } | null; staff_members: { display_name: string } | null };
   const lines = ((a.appointment_services ?? []) as unknown as Line[]).sort((x, y) => x.position - y.position);
@@ -34,7 +38,7 @@ export default async function ConfirmationPage({ searchParams }: { searchParams:
   const holdActive = isHold && a.hold_expires_at && Date.parse(a.hold_expires_at) > Date.now();
 
   return (
-    <>
+    <div className="mx-auto max-w-2xl">
       <h1 className="mb-4 text-3xl">
         {a.booking_status === "confirmed" ? "¡Tu cita está confirmada!" : isHold ? "Recibimos tu solicitud" : "Estado de tu reserva"}
       </h1>
@@ -104,13 +108,16 @@ export default async function ConfirmationPage({ searchParams }: { searchParams:
       <Link href="/reservar" className={`${secondaryButtonClass} mt-4`}>
         Hacer otra reserva
       </Link>
-    </>
+      <div className="mt-8">
+        <VisitCard location={visit.location} facebookUrl={visit.facebookUrl} displayName={visit.displayName} />
+      </div>
+    </div>
   );
 }
 
 function NotFound() {
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-2xl space-y-4">
       <ErrorNotice message="No encontramos esa reserva. Revisa el enlace o vuelve a intentarlo." />
       <Link href="/reservar" className={secondaryButtonClass}>
         Ir a reservas

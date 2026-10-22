@@ -22,6 +22,29 @@ export interface PortalService {
   category: string | null;
 }
 
+export interface PortalLocation {
+  id: string;
+  name: string;
+  address: string | null;
+  phone: string | null;
+  maps_url: string | null;
+  map_query: string | null;
+}
+
+/** Datos públicos para "Visítanos" (pie y paso 1 del portal). */
+export async function portalVisitInfo() {
+  const db = createAdminClient();
+  const [{ data: settings }, { data: location }] = await Promise.all([
+    db.from("business_settings").select("display_name, facebook_url").eq("id", 1).maybeSingle(),
+    db.from("locations").select("id, name, address, phone, maps_url, map_query").eq("is_active", true).order("name").limit(1).maybeSingle(),
+  ]);
+  return {
+    displayName: (settings?.display_name as string | undefined) ?? "Palace Hair Extensions",
+    facebookUrl: (settings?.facebook_url as string | null | undefined) ?? null,
+    location: (location as PortalLocation | null) ?? null,
+  };
+}
+
 export interface BookingPolicy {
   holdMinutes: number;
   minLeadMinutes: number;
@@ -31,8 +54,8 @@ export interface BookingPolicy {
 export async function portalContext() {
   const db = createAdminClient();
   const [{ data: settings }, { data: location }, { data: services, error }] = await Promise.all([
-    db.from("business_settings").select("display_name, booking_policy, privacy_notice_version").eq("id", 1).maybeSingle(),
-    db.from("locations").select("id, name, address, phone, maps_url").eq("is_active", true).order("name").limit(1).maybeSingle(),
+    db.from("business_settings").select("display_name, booking_policy, privacy_notice_version, facebook_url").eq("id", 1).maybeSingle(),
+    db.from("locations").select("id, name, address, phone, maps_url, map_query").eq("is_active", true).order("name").limit(1).maybeSingle(),
     db
       .from("services")
       .select("id, name, description, price_cents, price_is_from, duration_min, requires_consultation, online_bookable, deposit_type, deposit_value, service_categories(name, sort_order)")
@@ -66,7 +89,8 @@ export async function portalContext() {
   return {
     displayName: (settings?.display_name as string | undefined) ?? "Palace Hair Extensions",
     privacyNoticeVersion: (settings?.privacy_notice_version as string | null | undefined) ?? null,
-    location: location as { id: string; name: string; address: string | null; phone: string | null; maps_url: string | null } | null,
+    location: location as PortalLocation | null,
+    facebookUrl: (settings?.facebook_url as string | null | undefined) ?? null,
     policy,
     services: list,
     consultation,

@@ -57,3 +57,40 @@ export async function saveBusinessSettings(_prev: ActionState, form: FormData): 
   revalidatePath("/configuracion");
   return { ok: "Configuración del negocio guardada." };
 }
+
+const httpsUrl = (label: string, pattern: RegExp, hint: string) =>
+  optText(500).refine((v) => v === null || pattern.test(v), { message: `${label}: ${hint}` });
+
+const locationSchema = z.object({
+  location_id: z.uuid({ message: "Sucursal inválida." }),
+  location_name: text("Nombre de la sucursal", 2, 120),
+  address: optText(300),
+  phone: optText(30),
+  maps_url: httpsUrl("Enlace de Google Maps", /^https:\/\/\S+$/, "debe empezar con https://"),
+  map_query: optText(200),
+  facebook_url: httpsUrl("Página de Facebook", /^https:\/\/(www\.|m\.|es-la\.)?facebook\.com\/\S+$/, "pega el enlace de facebook.com"),
+});
+
+/** Ubicación de la sucursal (portal: mapa y "Cómo llegar") y página de Facebook del negocio. */
+export async function saveLocationInfo(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await managerAction();
+  if (ctx.error !== undefined) return { error: ctx.error };
+  const parsed = locationSchema.safeParse(Object.fromEntries(form));
+  if (!parsed.success) return { error: firstIssue(parsed.error) };
+  const d = parsed.data;
+  if (d.map_query !== null && d.map_query.length < 3) return { error: "Texto para el mapa: escribe al menos 3 caracteres." };
+
+  const [loc, biz] = await Promise.all([
+    ctx.supabase
+      .from("locations")
+      .update({ name: d.location_name, address: d.address, phone: d.phone, maps_url: d.maps_url, map_query: d.map_query, updated_at: new Date().toISOString() }, { count: "exact" })
+      .eq("id", d.location_id),
+    ctx.supabase.from("business_settings").update({ facebook_url: d.facebook_url, updated_at: new Date().toISOString() }, { count: "exact" }).eq("id", 1),
+  ]);
+  if (loc.error) return fail(loc.error);
+  if (biz.error) return fail(biz.error);
+  if (!loc.count || !biz.count) return { error: "Tu rol no tiene permiso para esta operación." };
+  revalidatePath("/configuracion");
+  revalidatePath("/reservar");
+  return { ok: "Ubicación y redes guardadas." };
+}
