@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, startTransition, useActionState, useEffect, useMemo, useRef, useState } from "react";
+import { formatPhone } from "../clientes/_lib/crm";
 import { mxn } from "@/lib/format";
 import { couponPreview, centsToInput, parsePesos } from "./_lib/money";
 import { METHOD_LABEL } from "./_lib/labels";
@@ -622,7 +623,7 @@ export function PosCart({
                 <p className="font-medium" data-testid="selected-client">
                   {client.name}
                 </p>
-                {client.phone ? <p className="text-xs text-muted">{client.phone}</p> : null}
+                {client.phone ? <p className="text-xs text-muted">{formatPhone(client.phone)}</p> : null}
               </div>
               <button
                 type="button"
@@ -649,7 +650,7 @@ export function PosCart({
                   {clientHits.map((c) => (
                     <li key={c.id}>
                       <button type="button" onClick={() => setClient(c)} className="w-full p-2 text-left text-sm hover:bg-surface-muted">
-                        {c.name} {c.phone ? <span className="text-muted">· {c.phone}</span> : null}
+                        {c.name} {c.phone ? <span className="text-muted">· {formatPhone(c.phone)}</span> : null}
                       </button>
                     </li>
                   ))}

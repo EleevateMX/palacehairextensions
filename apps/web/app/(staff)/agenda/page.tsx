@@ -262,23 +262,28 @@ async function DayView({ date, supabase }: { date: string; supabase: DB }) {
                   ))}
                   {mine.map((l) => {
                     const a = l.appointments!;
+                    // Citas cortas (< 1 h): en la rejilla todo va en un renglón para que no se corte el nombre.
+                    const short = Date.parse(l.ends_at) - Date.parse(l.starts_at) < 60 * 60_000;
+                    const status = <ShortStatus booking={a.booking_status} attendance={a.attendance_status} />;
                     return (
                       <li key={l.id} style={pos(Date.parse(l.starts_at), Date.parse(l.ends_at))} className={placed}>
                         <Link
                           href={`/agenda/cita/${a.id}`}
-                          className={`flex h-full flex-col gap-1 rounded-xl border border-l-[3px] border-line p-2.5 text-sm transition hover:border-gold ${statusAccent(
-                            a.booking_status,
-                            a.attendance_status,
-                          )} ${a.attendance_status === "in_service" ? "bg-nude" : "bg-surface"}`}
+                          className={`flex h-full flex-col gap-1 rounded-xl border border-l-[3px] border-line p-2.5 text-sm transition hover:border-gold ${
+                            short ? "md:justify-center md:py-1" : ""
+                          } ${statusAccent(a.booking_status, a.attendance_status)} ${a.attendance_status === "in_service" ? "bg-nude" : "bg-surface"}`}
                         >
-                          <span className="truncate font-medium">
-                            <span className="tabular-nums">{hour(l.starts_at)}</span> · {clientName(a.clients)}
+                          <span className="flex shrink-0 items-center justify-between gap-2">
+                            <span className="min-w-0 truncate font-medium">
+                              <span className="tabular-nums">{hour(l.starts_at)}</span> · {clientName(a.clients)}
+                            </span>
+                            {short ? <span className="hidden shrink-0 md:inline-flex">{status}</span> : null}
                           </span>
-                          <span className="truncate text-xs text-muted">
+                          <span className={`shrink-0 truncate text-xs text-muted ${short ? "md:hidden" : ""}`}>
                             {l.services?.name} · hasta {hour(l.ends_at)}
                           </span>
-                          <span className="flex flex-wrap gap-1">
-                            <ShortStatus booking={a.booking_status} attendance={a.attendance_status} />
+                          <span className={`flex shrink-0 flex-wrap gap-1 ${short ? "md:hidden" : ""}`}>
+                            {status}
                             {a.materials_status === "missing" ? <Badge tone="danger">Material faltante</Badge> : null}
                           </span>
                         </Link>
@@ -336,7 +341,7 @@ async function WeekView({ monday, supabase }: { monday: string; supabase: DB }) 
           <section key={d} className={`rounded-2xl border bg-surface p-2.5 ${d === today ? "border-gold" : "border-line"}`}>
             <Link href={`/agenda?date=${d}`} className="mb-2 flex items-baseline justify-between text-sm font-medium capitalize hover:underline">
               <span>{shortDay(d)}</span>
-              <span className="text-xs font-normal text-muted">{list.length ? `${list.length} cita${list.length === 1 ? "" : "s"}` : ""}</span>
+              <span className="text-xs font-normal normal-case text-muted">{list.length ? `${list.length} cita${list.length === 1 ? "" : "s"}` : ""}</span>
             </Link>
             {list.length === 0 ? <p className="text-xs text-muted">Sin citas</p> : null}
             {[...groups.entries()].map(([staffId, items]) => (

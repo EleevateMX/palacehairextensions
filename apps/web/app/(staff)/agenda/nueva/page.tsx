@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { formatPhone } from "../../clientes/_lib/crm";
 import { redirect } from "next/navigation";
 import { KeepValuesForm } from "../_components/keep-values-form";
 import { buttonClass, Card, EmptyState, ErrorNotice, Field, inputClass, PageHeader, slotButtonClass, StepIndicator } from "@/components/ui";
@@ -124,7 +125,7 @@ export default async function NewAppointmentPage({ searchParams }: { searchParam
               <option value="">Selecciona…</option>
               {(clients ?? []).map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.first_name} {c.last_name ?? ""} {c.phone ? `· ${c.phone}` : ""}
+                  {c.first_name} {c.last_name ?? ""} {c.phone ? `· ${formatPhone(c.phone)}` : ""}
                 </option>
               ))}
             </select>

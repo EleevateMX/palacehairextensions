@@ -109,7 +109,7 @@ export default async function ConfirmationPage({ searchParams }: { searchParams:
         Hacer otra reserva
       </Link>
       <div className="mt-8">
-        <VisitCard location={visit.location} facebookUrl={visit.facebookUrl} displayName={visit.displayName} />
+        <VisitCard location={visit.location} facebookUrl={visit.facebookUrl} displayName={visit.displayName} layout="wide" />
       </div>
     </div>
   );

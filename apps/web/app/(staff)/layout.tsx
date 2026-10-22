@@ -27,7 +27,8 @@ export default async function StaffLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[14.5rem_minmax(0,1fr)]">
       {/* Escritorio: barra lateral */}
-      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-line bg-surface px-4 py-6 lg:flex">
+      <div className="hidden border-r border-line bg-surface lg:block">
+        <aside className="sticky top-0 flex h-dvh flex-col px-4 py-6">
         <Link href="/dashboard" className="mb-8 block px-2">
           <Wordmark />
         </Link>
@@ -44,7 +45,8 @@ export default async function StaffLayout({ children }: { children: React.ReactN
           </div>
           {logoutButton}
         </div>
-      </aside>
+        </aside>
+      </div>
 
       {/* Teléfono: barra superior */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-bg/90 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur md:px-8 lg:hidden">

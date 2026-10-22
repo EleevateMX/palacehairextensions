@@ -61,7 +61,7 @@ export async function ProfileTab({ supabase, staff, client }: TabProps) {
             <input name="last_name" maxLength={80} defaultValue={client.last_name ?? ""} className={inputClass} />
           </Field>
           <Field label="Teléfono" hint="10 dígitos (+52) o formato internacional">
-            <input name="phone" type="tel" inputMode="tel" defaultValue={client.phone ?? ""} className={inputClass} />
+            <input name="phone" type="tel" inputMode="tel" defaultValue={client.phone ? formatPhone(client.phone) : ""} className={inputClass} />
           </Field>
           <Field label="Correo">
             <input name="email" type="email" defaultValue={client.email ?? ""} className={inputClass} />

@@ -8,6 +8,7 @@ import { buttonClass, Card, EmptyState, ErrorNotice, Field, inputClass, PageHead
 import { loadSlots } from "@/lib/availability";
 import { hour, isIsoDate, longDate, mxn, TZ } from "@/lib/format";
 import { can, requireStaff } from "@/lib/staff";
+import { formatPhone } from "../../../clientes/_lib/crm";
 import { clientName, DEPOSIT_METHOD, DEPOSIT_STATUS, one, StatusBadge } from "../../_lib/status";
 import {
   cancelAppointmentAction,
@@ -251,7 +252,7 @@ export default async function AppointmentDetailPage({ params, searchParams }: { 
             )}
           </Card>
 
-          {canAttend && confirmed && !finished ? (
+          {canAttend && confirmed && (att === "scheduled" || att === "arrived") ? (
             <Card title="Asistencia">
               <div className="flex flex-wrap gap-2">
                 {att === "scheduled" ? <AttendanceButton id={a.id} status="arrived" label="Llegó" variant="primary" /> : null}
@@ -373,7 +374,7 @@ export default async function AppointmentDetailPage({ params, searchParams }: { 
         <div className="space-y-4">
           <Card title="Clienta">
             <p className="text-sm font-medium">{clientName(client)}</p>
-            {client?.phone ? <p className="text-sm text-muted">{client.phone}</p> : null}
+            {client?.phone ? <p className="text-sm text-muted">{formatPhone(client.phone)}</p> : null}
             <p className="mt-2 text-xs text-muted">Origen: {SOURCE[a.source] ?? a.source}</p>
             {a.cancel_reason ? <p className="mt-2 text-sm">Motivo de cancelación: {a.cancel_reason === "rescheduled" ? "reprogramada" : a.cancel_reason}</p> : null}
             {a.rescheduled_from ? (

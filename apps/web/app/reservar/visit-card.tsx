@@ -10,7 +10,18 @@ export function mapsSearchUrl(query: string) {
  * "Visítanos": mapa, dirección, teléfono, cómo llegar y Facebook.
  * El mapa es el embebido público de Google Maps; se carga solo al acercarse (loading="lazy").
  */
-export function VisitCard({ location, facebookUrl, displayName }: { location: PortalLocation | null; facebookUrl: string | null; displayName: string }) {
+export function VisitCard({
+  location,
+  facebookUrl,
+  displayName,
+  layout = "side",
+}: {
+  location: PortalLocation | null;
+  facebookUrl: string | null;
+  displayName: string;
+  /** "side": columna angosta (mapa cuadrado en escritorio); "wide": a lo ancho (mapa apaisado). */
+  layout?: "side" | "wide";
+}) {
   if (!location) return null;
   // El mapa busca por el nombre del salón (muestra su ficha de Google); la dirección es respaldo.
   const query = location.map_query || location.address;
@@ -24,7 +35,7 @@ export function VisitCard({ location, facebookUrl, displayName }: { location: Po
           src={`https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed&hl=es`}
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
-          className="block aspect-[4/3] w-full border-0 bg-surface-muted lg:aspect-square"
+          className={`block w-full border-0 bg-surface-muted ${layout === "side" ? "aspect-[4/3] lg:aspect-square" : "aspect-[16/9]"}`}
         />
       ) : null}
       <div className="space-y-3 p-5">

@@ -216,7 +216,7 @@ export default async function DashboardPage() {
                     <div className="flex justify-between gap-2">
                       <span className="truncate">{r.name}</span>
                       <span className="tabular-nums text-muted">
-                        {r.completedAppointments} citas · {mxn(r.servicesRevenueCents + r.productsRevenueCents)}
+                        {r.completedAppointments} {r.completedAppointments === 1 ? "cita" : "citas"} · {mxn(r.servicesRevenueCents + r.productsRevenueCents)}
                       </span>
                     </div>
                     <Bar value={r.occupancyPct ?? 0} max={100} label={r.occupancyPct === null ? "Sin turno" : `${pct(r.occupancyPct)} ocupación`} />

@@ -146,10 +146,10 @@ export default async function ReceptionPage() {
                 <li key={h.id} className="py-2 text-sm">
                   <Link href={`/agenda/cita/${h.id}`} className="flex justify-between gap-2 hover:underline">
                     <span className="truncate">{clientName(one(h.clients))}</span>
-                    <span className="tabular-nums text-warning">vence en {Math.max(minutesBetween(now, Date.parse(h.hold_expires_at!)), 0)} min</span>
+                    <span className="tabular-nums text-warning">vence en {durationText(Math.max(minutesBetween(now, Date.parse(h.hold_expires_at!)), 0))}</span>
                   </Link>
                   <p className="text-xs text-muted">
-                    Cita: <span className="capitalize">{longDate(utcToLocalDate(Date.parse(h.starts_at), TZ))}</span> · {hour(h.starts_at)}
+                    Cita: {capitalizeFirst(longDate(utcToLocalDate(Date.parse(h.starts_at), TZ)))} · {hour(h.starts_at)}
                   </p>
                 </li>
               ))}
@@ -255,4 +255,16 @@ function QuickAttendance({ id, status, label }: { id: string; status: string; la
       </SubmitButton>
     </ActionForm>
   );
+}
+
+/** 45 → "45 min"; 598 → "9 h 58 min". */
+function durationText(min: number): string {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return h ? `${h} h${m ? ` ${m} min` : ""}` : `${m} min`;
+}
+
+/** Solo la primera letra en mayúscula ("viernes, 23 de octubre" → "Viernes, 23 de octubre"). */
+function capitalizeFirst(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
